@@ -130,6 +130,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
             child: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0.0,
+              
               // title: new Text(widget.audiovisual.nombre),
             ),
           )
