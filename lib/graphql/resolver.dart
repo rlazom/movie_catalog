@@ -5,7 +5,8 @@ import 'package:catalogo/model/category/CategoryModel.dart';
 import 'package:graphql/client.dart';
 
 class Resolver {
-  final uri = 'http://172.18.0.1:1337/graphql';
+  final uri = 'http://10.42.0.1:1337/graphql';
+  // final uri = 'http://172.18.0.1:1337/graphql';
   final appId = 'yourappid';
   final masterKey = 'yourmasterkey';
 
