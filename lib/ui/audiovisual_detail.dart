@@ -14,139 +14,152 @@ class AudiovisualDetail extends StatefulWidget {
 class _AudiovisualDetailState extends State<AudiovisualDetail> {
   @override
   Widget build(BuildContext context) {
-    print(widget.audiovisual.imageUrl);
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          new ListView(
-            children: <Widget>[
-              Stack(
-                  alignment: AlignmentDirectional.bottomCenter,
-                  children: <Widget>[
-                    widget.audiovisual.imageUrl == null
-                        ? new DefaultAudiovisualImage(
-                            heigth: 250,
+      body: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            pinned: true,
+            floating: false,
+            backgroundColor: Colors.white,
+            elevation: 1,
+            expandedHeight: MediaQuery.of(context).size.height / 1.7,
+            primary: true,
+            actionsIconTheme: IconThemeData(color: Colors.black),
+            iconTheme: IconThemeData(color: Colors.black),
+            flexibleSpace: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                var top = constraints.biggest.height;
+                return FlexibleSpaceBar(
+                  collapseMode: CollapseMode.pin,
+                  title: AnimatedOpacity(
+                      duration: Duration(milliseconds: 150),
+                      opacity: top == 80.0 ? 1.0 : 0.0,
+                      child: Text(widget.audiovisual.titulo, style: TextStyle(color: Colors.black),)),
+                  background: Container(
+                    child: Stack(
+                        alignment: AlignmentDirectional.bottomCenter,
+                        fit: StackFit.loose,
+                        children: <Widget>[
+                          widget.audiovisual.imageUrl == null
+                              ? new DefaultAudiovisualImage(
+                                  heigth: MediaQuery.of(context).size.height / 1.7,
+                                )
+                              : Image.network(
+                                  widget.audiovisual.imageUrl,
+                                  fit: BoxFit.fill,
+                                  height: double.infinity,
+                                  width: double.infinity,
+                                ),
+                          // Container(height: 220, color: Colors.amber),
+                          CustomPaint(
+                            painter: ShapesPainter(),
+                            child: Container(
+                              height: 50,
+                              color: Colors.transparent,
+                            ),
                           )
-                        : Image.network(widget.audiovisual.imageUrl),
-                    // Container(height: 220, color: Colors.amber),
-                    CustomPaint(
-                      painter: ShapesPainter(),
-                      child: Container(
-                        height: 50,
-                        color: Colors.transparent,
-                      ),
-                    )
-                  ]),
-              Padding(
-                padding: const EdgeInsets.all(0),
-                child: Container(
-                    color: Colors.white,
-                    child: Column(
-                      children: <Widget>[
-                        new AudiovisualTitle(
-                            title: widget.audiovisual.titulo,
-                            value: widget.audiovisual.titulo),
-
-                        /// SINOPSIS
-                        buildDivider(widget.audiovisual.sinopsis),
-                        new AudiovisualContentHorizontal(
-                          label: 'Sinopsis',
-                          content: widget.audiovisual.sinopsis,
-                        ),
-
-                        /// PAIS
-                        buildDivider(widget.audiovisual.pais),
-                        new AudiovisualContentHorizontal(
-                          label: 'Pais',
-                          content: widget.audiovisual.pais,
-                        ),
-
-                        /// TAMAÑO
-                        buildDivider(widget.audiovisual.tamanno),
-                        new AudiovisualContentHorizontal(
-                          label: 'Tamaño',
-                          content: widget.audiovisual.tamanno,
-                        ),
-
-                        /// FORMATO
-                        buildDivider(widget.audiovisual.formato),
-                        new AudiovisualContentHorizontal(
-                          label: 'Formato',
-                          content: widget.audiovisual.formato,
-                        ),
-
-                        /// CAPITULOS
-                        buildDivider(widget.audiovisual.capitulos),
-                        new AudiovisualContentHorizontal(
-                          label: 'Capitulos',
-                          content: widget.audiovisual.capitulos,
-                        ),
-
-                        /// DIRECTOR
-                        buildDivider(widget.audiovisual.director),
-                        new AudiovisualContentHorizontal(
-                          label: 'Director',
-                          content: widget.audiovisual.director,
-                        ),
-
-                        /// AÑO
-                        buildDivider(widget.audiovisual.anno),
-                        new AudiovisualContentHorizontal(
-                          label: 'Año',
-                          content: widget.audiovisual.anno,
-                        ),
-
-                        /// PRODUCTORA
-                        buildDivider(widget.audiovisual.productora),
-                        new AudiovisualContentHorizontal(
-                            label: 'Productora',
-                            content: widget.audiovisual.productora),
-
-                        /// DURACION
-                        buildDivider(widget.audiovisual.duracion),
-                        new AudiovisualContentHorizontal(
-                            label: 'Duración',
-                            content: widget.audiovisual.duracion),
-
-                        ///
-                        buildDivider(widget.audiovisual.idioma),
-                        new AudiovisualContentHorizontal(
-                            label: 'Idioma', content: widget.audiovisual.idioma),
-
-                        ///
-                        buildDivider(widget.audiovisual.reparto),
-                        new AudiovisualContentHorizontal(
-                            label: 'Reparto',
-                            content: widget.audiovisual.reparto),
-                      ],
-                    )),
-              )
-            ],
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0.0,
-              
-              // title: new Text(widget.audiovisual.nombre),
+                        ]),
+                  ),
+                );
+              },
             ),
+          ),
+          SliverList(
+            delegate: SliverChildListDelegate(buildAudiovisualBody()),
           )
         ],
       ),
     );
   }
 
+  buildAudiovisualBody() {
+    return [
+      new AudiovisualTitle(
+          title: widget.audiovisual.titulo, value: widget.audiovisual.titulo),
+
+      /// SINOPSIS
+      buildDivider(widget.audiovisual.sinopsis),
+      new AudiovisualContentHorizontal(
+        label: 'Sinopsis',
+        content: widget.audiovisual.sinopsis,
+      ),
+
+      /// PAIS
+      buildDivider(widget.audiovisual.pais),
+      new AudiovisualContentHorizontal(
+        label: 'Pais',
+        content: widget.audiovisual.pais,
+      ),
+
+      /// TAMAÑO
+      buildDivider(widget.audiovisual.tamanno),
+      new AudiovisualContentHorizontal(
+        label: 'Tamaño',
+        content: widget.audiovisual.tamanno,
+      ),
+
+      /// FORMATO
+      buildDivider(widget.audiovisual.formato),
+      new AudiovisualContentHorizontal(
+        label: 'Formato',
+        content: widget.audiovisual.formato,
+      ),
+
+      /// CAPITULOS
+      buildDivider(widget.audiovisual.capitulos),
+      new AudiovisualContentHorizontal(
+        label: 'Capitulos',
+        content: widget.audiovisual.capitulos,
+      ),
+
+      /// DIRECTOR
+      buildDivider(widget.audiovisual.director),
+      new AudiovisualContentHorizontal(
+        label: 'Director',
+        content: widget.audiovisual.director,
+      ),
+
+      /// AÑO
+      buildDivider(widget.audiovisual.anno),
+      new AudiovisualContentHorizontal(
+        label: 'Año',
+        content: widget.audiovisual.anno,
+      ),
+
+      /// PRODUCTORA
+      buildDivider(widget.audiovisual.productora),
+      new AudiovisualContentHorizontal(
+          label: 'Productora', content: widget.audiovisual.productora),
+
+      /// DURACION
+      buildDivider(widget.audiovisual.duracion),
+      new AudiovisualContentHorizontal(
+          label: 'Duración', content: widget.audiovisual.duracion),
+
+      ///
+      buildDivider(widget.audiovisual.idioma),
+      new AudiovisualContentHorizontal(
+          label: 'Idioma', content: widget.audiovisual.idioma),
+
+      ///
+      buildDivider(widget.audiovisual.reparto),
+      new AudiovisualContentHorizontal(
+          label: 'Reparto', content: widget.audiovisual.reparto),
+    ];
+    /* ) */;
+  }
+
   Widget buildDivider(String value) {
     return Visibility(
       visible: value != null && value.isNotEmpty,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        child: new Divider(
-          height: 1,
-          color: Colors.black,
+      child: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          child: new Divider(
+            height: 1,
+            color: Colors.black,
+          ),
         ),
       ),
     );
@@ -164,12 +177,15 @@ class AudiovisualContentHorizontal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Visibility(
       visible: content != null && content.isNotEmpty,
-      child: ListTile(
-        title: Text(
-          label,
-        ),
-        subtitle: Text(
-          content,
+      child: Container(
+        color: Colors.white,
+        child: ListTile(
+          title: Text(
+            label,
+          ),
+          subtitle: Text(
+            content != null && content.isNotEmpty ? content : '',
+          ),
         ),
       ),
     );
@@ -190,11 +206,14 @@ class AudiovisualTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Visibility(
       visible: value != null && value.isNotEmpty,
-      child: ListTile(
-        title: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
+      child: Container(
+        color: Colors.white,
+        child: ListTile(
+          title: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );
