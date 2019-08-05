@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
 import 'package:catalogo/model/category/CategoryModel.dart';
 import 'package:catalogo/repository/repository.dart';
 
@@ -32,6 +33,27 @@ class CategoryBlock {
   deleteCategoryById(String id) async {
     _categoryRepository.deleteCategoryById(id);
     getAllCategory();
+  }
+
+  dispose() {
+    _controller.close();
+  }
+}
+
+class AudiovisualBlock {
+  //Get instance of the Repository
+  final _audiovisualRepository = AudiovisualRepository();
+
+  final _controller = StreamController<List<AudiovisualModel>>.broadcast();
+
+  get audiovisuales => _controller.stream;
+
+  AudiovisualBlock() {
+    // getCategory();
+  }
+
+  findAudiovisualList(int limit, int skip, String category, String genre, String titulo) async {
+    _controller.sink.add(await _audiovisualRepository.findAudiovisualList(limit, skip, category, genre, titulo));
   }
 
   dispose() {

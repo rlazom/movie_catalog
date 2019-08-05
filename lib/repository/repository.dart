@@ -44,3 +44,10 @@ class CategoryRepository {
 
   Future deleteAllCategory() => resolver.deleteAllCategory();
 }
+
+class AudiovisualRepository {
+  final Resolver resolver = Resolver();
+
+  Future findAudiovisualList(int limit, int skip, String category, String genre, String titulo) =>
+      resolver.findAudiovisualList(limit, skip, category, genre, titulo);
+}

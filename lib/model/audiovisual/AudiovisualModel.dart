@@ -11,9 +11,18 @@ class AudiovisualModel {
   Image image;
   Category category;
   Genre genre;
+  String imageUrl;
+  String capitulos;
+  String director;
+  String anno;
+  String productora;
+  String duracion;
+  String idioma;
+  String reparto;
+  String pais;
 
   AudiovisualModel(this.titulo, this.sinopsis, this.updatedAt, this.tamanno,
-      this.formato, this.image, this.category, this.genre);
+      this.formato, this.imageUrl, this.category, this.genre);
 
   AudiovisualModel.fromJsonMap(Map<String, dynamic> map)
       : titulo = map["titulo"],
@@ -39,7 +48,28 @@ class AudiovisualModel {
   }
 
   static AudiovisualModel fromGraphqlObject(dynamic a) {
-    return AudiovisualModel(a['titulo'], a['sinopsis'], a['updatedAt'],
-        a['tamanno'], a['formato'], a['image'], a['category'], a['genre']);
+    var imageUrl;
+    if (a['image'] != null) {
+      imageUrl =
+          a['image']['image']['url'].toString().replaceFirst('graphq', 'parse');
+    }
+    var audiovisualModel = AudiovisualModel(
+        a['titulo'],
+        a['sinopsis'],
+        a['updatedAt'],
+        a['tamanno'],
+        a['formato'],
+        imageUrl,
+        Category.fromJsonMap(a['category']),
+        Genre.fromJsonMap(a['genre']));
+    audiovisualModel.capitulos = a['capitulos'];
+    audiovisualModel.director = a['director'];
+    audiovisualModel.anno = a['anno'];
+    audiovisualModel.productora = a['productora'];
+    audiovisualModel.duracion = a['duracion'];
+    audiovisualModel.idioma = a['idioma'];
+    audiovisualModel.reparto = a['reparto'];
+    audiovisualModel.pais = a['pais'];
+    return audiovisualModel;
   }
 }

@@ -4,7 +4,7 @@ class Image {
   String url;
 
 	Image.fromJsonMap(Map<String, dynamic> map): 
-		url = map["url"];
+		url = map["image"] ;
 
 	Map<String, dynamic> toJson() {
 		final Map<String, dynamic> data = new Map<String, dynamic>();

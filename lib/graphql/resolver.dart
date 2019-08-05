@@ -1,7 +1,6 @@
-import 'dart:collection';
-
+import 'package:catalogo/graphql/queries.dart';
+import 'package:catalogo/graphql/test/AudiovisualConstraints.dart';
 import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
-import 'package:catalogo/model/audiovisual/category.dart';
 import 'package:catalogo/model/category/CategoryModel.dart';
 import 'package:graphql/client.dart';
 
@@ -24,7 +23,6 @@ class Resolver {
 
     return GraphQLClient(
       cache: InMemoryCache(),
-//      link: _httpLink as Link,
       link: _link,
     );
   }
@@ -34,26 +32,12 @@ class Resolver {
       List<CategoryModel> resultList = [];
       final GraphQLClient _client = client();
 
-      const String query = r'''
-            query AllCategorias {
-              objects {
-                findcategoria {
-                  results{
-                    objectId
-                    categoria
-                    id_padre
-                  }
-                }
-              }
-            }
-          ''';
-
       final QueryResult result =
-          await _client.query(QueryOptions(document: query));
+          await _client.query(QueryOptions(document: CFG.queryAllCategorias));
 
       if (!result.hasErrors) {
         final List<dynamic> list =
-        result.data['objects']['findcategoria']['results'] as List<dynamic>;
+            result.data['objects']['findcategoria']['results'] as List<dynamic>;
         list.forEach((c) {
           resultList.add(CategoryModel.fromGraphqlObject(c));
         });
@@ -63,45 +47,52 @@ class Resolver {
     } catch (e) {
       return null;
     }
-
   }
 
-  //TODO FIX!!!!!!!!!!!!
-  Future<List<AudiovisualModel>> findAudiovisual() async {
+  Future<List<AudiovisualModel>> findAudiovisualList(
+      int limit, int skip, String category, String genre, String title) async {
+    List<AudiovisualModel> resultList = [];
     try {
-      List<AudiovisualModel> resultList = [];
       final GraphQLClient _client = client();
 
-      const String query = r'''
-            query AllCategorias {
-              objects {
-                findcategoria {
-                  results{
-                    objectId
-                    categoria
-                    id_padre
-                  }
-                }
-              }
-            }
-          ''';
+      var options = QueryOptions(document: CFG.findAudiovisualQuery);
+      var variables = <String, dynamic>{'limit': limit, 'skip': skip};
 
-      final QueryResult result =
-      await _client.query(QueryOptions(document: query));
+      List<String> wheres = [];
+      if (category != null && category.isNotEmpty) {
+        wheres.add('category: {_eq: "$category"}');
+      }
+      if (genre != null && genre.isNotEmpty) {
+        wheres.add('genre: {_eq: "$genre"}');
+      }
+      if (title != null && title.isNotEmpty) {
+        wheres.add('titulo: {_text: {_search: {_term: "$title"}}}');
+      }
+      if (wheres.isNotEmpty) {
+        variables.putIfAbsent('where', () {
+          return AudiovisualConstraints.fromJsonMap({
+//            "titulo": {"_text": {"_search": {"_term": ""}}},
+            "category": {"_eq": category},
+            "genre": {"_eq": genre}
+          }).toJson();
+        });
+//        variables.putIfAbsent('where', () => wheres.join(','));
+      }
+
+      options.variables = variables;
+      final QueryResult result = await _client.query(options);
 
       if (!result.hasErrors) {
         final List<dynamic> list =
-        result.data['objects']['findcategoria']['results'] as List<dynamic>;
+            result.data['objects']['findaudiovisual']['results'] as List<dynamic>;
         list.forEach((c) {
           resultList.add(AudiovisualModel.fromGraphqlObject(c));
         });
-      }
-
-      return await new Future<List<AudiovisualModel>>(() => resultList);
+      } else print(result.errors[0].message);
     } catch (e) {
-      return null;
+      print(e);
     }
-
+    return await new Future<List<AudiovisualModel>>(() => resultList);
   }
 
   createCategory(CategoryModel category) {}

@@ -34,6 +34,14 @@ class CFG {
               updatedAt
               tamanno
               formato
+              capitulos
+              director
+              anno
+              productora
+              duracion
+              idioma
+              reparto
+              pais
               image{
                 image{
                   url

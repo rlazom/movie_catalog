@@ -32,7 +32,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('casa'),
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        title: Text('Inicio', style: TextStyle(color: Colors.black),),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.refresh),
