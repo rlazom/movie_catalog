@@ -81,10 +81,10 @@ class FavoriteService {
   const String PASSWORD_KEY = 'PASSWORD_KEY';
 
 class LoginService {
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+//  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   
   Future<String> getString(String key) async {
-    final SharedPreferences prefs = await _prefs;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     String result;
     try {
       result = prefs.getString(key);
@@ -93,12 +93,12 @@ class LoginService {
   }
 
   Future setString(String key, String value) async {
-    final SharedPreferences prefs = await _prefs;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.setString(key, value);
   }
 
   Future clearLoginData() async {
-    final SharedPreferences prefs = await _prefs;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(USERNAME_KEY);
     await prefs.remove(TOKEN_KEY);
     await prefs.remove(EMAIL_KEY);

@@ -1,54 +1,61 @@
 import 'package:catalogo/block/block.dart';
 import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
+import 'package:catalogo/model/category/CategoryModel.dart';
+import 'package:catalogo/ui/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'audiovisual_detail.dart';
 
-class AudiovisualList extends StatefulWidget {
-  final String category;
-  final String genre;
+class AudiovisualList extends StatelessWidget {
+//  final String category;
+//  final String genre;
+//
+//  AudiovisualList({Key key, this.category, this.genre}) : super(key: key);
+//
+//  _AudiovisualListState createState() => _AudiovisualListState();
+//}
+//
+//class _AudiovisualListState extends State<AudiovisualList> {
+  final AudiovisualBlock block = AudiovisualBlock();
+  final DEFAULT_LIMIT = 20;
+  final skipValues = null;
 
-  AudiovisualList({Key key, this.category, this.genre}) : super(key: key);
+//  @override
+//  void initState() {
+//    super.initState();
+//    loadData();
+//  }
 
-  _AudiovisualListState createState() => _AudiovisualListState();
-}
-
-class _AudiovisualListState extends State<AudiovisualList> {
-  AudiovisualBlock block = AudiovisualBlock();
-  static const DEFAULT_LIMIT = 10;
-  var skipValues = null;
-
-  @override
-  void initState() {
-    super.initState();
-    loadData();
-  }
-
-  void loadData() {
+  void loadData(CategoryModel category, CategoryModel genre) {
     block.findAudiovisualList(
-        DEFAULT_LIMIT, skipValues, widget.category, widget.genre, null);
+        DEFAULT_LIMIT, skipValues, category.id, genre.id, null);
   }
 
   @override
   Widget build(BuildContext context) {
+    var parentCategory = MyInheritedWidget.of(context).myCategory;
+    var parentGenre = MyInheritedWidget.of(context).myGenre;
+    loadData(parentCategory, parentGenre);
     return StreamBuilder(
       stream: block.audiovisuales,
       builder: (BuildContext context,
           AsyncSnapshot<List<AudiovisualModel>> snapshot) {
-        return getAudiovisualCardWidget(snapshot);
+        return getAudiovisualCardWidget(context, snapshot);
       },
     );
   }
 
   Widget getAudiovisualCardWidget(
-      AsyncSnapshot<List<AudiovisualModel>> snapshot) {
+      BuildContext context, AsyncSnapshot<List<AudiovisualModel>> snapshot) {
     return new Container(
       child: new Center(
-          child: snapshot != null && snapshot.data != null
-              ? snapshot.data.length != 0
-                  ? _buildGrid(snapshot)
-//                  ? _buildList(snapshot)
+          child: snapshot != null &&
+                  snapshot.connectionState != ConnectionState.waiting
+              ? snapshot != null &&
+                      snapshot.data != null &&
+                      snapshot.data.length != 0
+                  ? _buildGrid(context, snapshot)
                   : Text('Sin resultados')
               : Center(
                   child: Text('Cargando'),
@@ -56,31 +63,24 @@ class _AudiovisualListState extends State<AudiovisualList> {
     );
   }
 
-  Widget _buildList(AsyncSnapshot<List<AudiovisualModel>> snapshot) {
-    return ListView.builder(
-        itemCount: snapshot.data.length,
-        itemBuilder: (context, itemPosition) {
-          AudiovisualModel audiovisual = snapshot.data[itemPosition];
-          return _buildItem(audiovisual);
-        });
-  }
-
-  Widget _buildGrid(AsyncSnapshot<List<AudiovisualModel>> snapshot) {
+  Widget _buildGrid(
+      BuildContext context, AsyncSnapshot<List<AudiovisualModel>> snapshot) {
+    int columns = (MediaQuery.of(context).size.width ~/ 128);
     return GridView.builder(
         gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, childAspectRatio: 0.7),
+            crossAxisCount: columns, childAspectRatio: 0.7),
         itemCount: snapshot.data.length,
         itemBuilder: (context, itemPosition) {
           AudiovisualModel audiovisual = snapshot.data[itemPosition];
-          return _buildItem(audiovisual);
+          return _buildItem(audiovisual, context);
         });
   }
 
-  Widget _buildItem(AudiovisualModel audiovisual) {
+  Widget _buildItem(AudiovisualModel audiovisual, BuildContext context) {
     return Container(
       color: Colors.white,
       child: GestureDetector(
-        onTap: () => _navigateToDetails(audiovisual),
+        onTap: () => _navigateToDetails(audiovisual, context),
         child: Card(
           margin: EdgeInsets.all(10),
           borderOnForeground: true,
@@ -125,7 +125,8 @@ class _AudiovisualListState extends State<AudiovisualList> {
     );
   }
 
-  void _navigateToDetails(AudiovisualModel audiovisual) async {
+  void _navigateToDetails(
+      AudiovisualModel audiovisual, BuildContext context) {
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -137,6 +138,7 @@ class _AudiovisualListState extends State<AudiovisualList> {
 
 class DefaultAudiovisualImage extends StatelessWidget {
   final double heigth;
+
   const DefaultAudiovisualImage({
     Key key,
     this.heigth,
@@ -161,26 +163,3 @@ class DefaultAudiovisualImage extends StatelessWidget {
     );
   }
 }
-
-// Widget getImage(AudiovisualModel audiovisual) {
-//   return audiovisual.imageUrl != null
-//       ? Image.network(
-//           audiovisual.imageUrl,
-//           fit: BoxFit.fill,
-//           height: double.infinity,
-//         )
-//       : Container(
-//           decoration: BoxDecoration(
-//               gradient: LinearGradient(
-//                   begin: Alignment.topCenter,
-//                   end: Alignment.bottomCenter,
-//                   colors: [Colors.grey, Colors.black54, Colors.black])),
-//           child: Center(
-//             child: Icon(
-//               Icons.image,
-//               color: Colors.grey,
-//               size: 100,
-//             ),
-//           ),
-//         );
-// }

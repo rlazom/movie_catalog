@@ -7,7 +7,7 @@ import 'package:catalogo/model/category/CategoryModel.dart';
 class CategoryRepository {
   final resolver = Resolver();
 
-  Future getAllCategory() async {
+  Future<List<CategoryModel>> getAllCategory() async {
     List<CategoryModel> allCategory = await resolver.getAllCategory();
     List<CategoryModel> forgibenList = [];
     Map<String, CategoryModel> map = HashMap<String, CategoryModel>();
@@ -15,21 +15,16 @@ class CategoryRepository {
     allCategory.forEach((c) {
       if (c.idParent == null || c.idParent.isEmpty) {
         var putIfAbsent = map.putIfAbsent(c.id, () => c);
-        print(putIfAbsent.name);
-        print(c.name);
-        print(c.id);
-      }
-      else if (map.containsKey(c.idParent)) {
+      } else if (map.containsKey(c.idParent)) {
         map[c.idParent].genres.add(c);
       } else
         forgibenList.add(c);
     });
     forgibenList.forEach((c) {
-          if (map.containsKey(c.idParent)) {
-            map[c.idParent].genres.add(c);
-            print(c.genres.length);
-          }
-        });
+      if (map.containsKey(c.idParent)) {
+        map[c.idParent].genres.add(c);
+      }
+    });
 
     return await new Future<List<CategoryModel>>(() => map.values.toList());
   }
@@ -48,6 +43,21 @@ class CategoryRepository {
 class AudiovisualRepository {
   final Resolver resolver = Resolver();
 
-  Future findAudiovisualList(int limit, int skip, String category, String genre, String titulo) =>
+  Future findAudiovisualList(
+          int limit, int skip, String category, String genre, String titulo) =>
       resolver.findAudiovisualList(limit, skip, category, genre, titulo);
+
+  findAudiovisualCount(String category, {String genre}) =>
+      resolver.findAudiovisualCount(category, genre: genre);
+}
+
+class UserRepository {
+  final Resolver resolver = Resolver();
+
+  Future login(String user, String pass) => resolver.login(user, pass);
+
+  Future signUp(String user, String pass, String email) =>
+      resolver.signUp(user, pass, email);
+
+  Future logout() => resolver.logout();
 }

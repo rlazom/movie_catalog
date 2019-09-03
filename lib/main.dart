@@ -1,10 +1,23 @@
+import 'package:catalogo/service.dart';
+import 'package:catalogo/ui/home.dart';
+import 'package:catalogo/ui/onboard.dart';
 import 'package:flutter/material.dart';
 
-import 'ui/category.dart';
+LoginService service = new LoginService();
 
-void main() => runApp(MyApp());
+void main() async {
+  Widget defaultWidget = Onboard();
 
-class MyApp extends StatelessWidget {
+  bool _result = await service.getString(USERNAME_KEY) != null &&
+      await service.getString(TOKEN_KEY) != null;
+  if (_result) {
+    defaultWidget = Home();
+  }
+
+  runApp(defaultWidget);
+}
+
+class Onboard extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -13,66 +26,21 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: OnboardPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  var title = 'Inicio';
-  int selectedDrawerIndex = 0;
-  Widget actualBody = new CategoryList();
-
+class Home extends StatelessWidget {
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.black),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: Text('Inicio', style: TextStyle(color: Colors.black),),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () {
-              setState(() {
-                actualBody = new CategoryList();
-              });
-            },
-          )
-        ],
+    return MaterialApp(
+      title: 'Catalogo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: <Widget>[
-            ListTile(
-              title: Text('1'),
-              onTap: () {
-                setState(() {
-                  actualBody = CategoryList();
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('2'),
-              onTap: () {
-                setState(() {
-                  actualBody = Center(child: Text('data'),);
-                });
-                Navigator.pop(context);
-              }
-            )
-          ],
-        ),
-      ),
-      body:
-          actualBody, // This trailing comma makes auto-formatting nicer for build methods.
+      home: HomePage(),
     );
   }
 }

@@ -1,4 +1,11 @@
 class CFG {
+  static const loguotMutation = r'''
+            mutation logout {
+              users{
+                logOut
+              }
+            }
+   ''';
   static const queryAllCategorias = r'''
             query AllCategorias {
               objects {
@@ -55,4 +62,26 @@ class CFG {
               }
             }
           ''';
+  static const countAudiovisuales = r'''
+            query cantidad($category: categoriaPointer, $genre: categoriaPointer) {
+              objects {
+                findaudiovisual(
+                  where: { category: { _eq: $category }, genre: { _eq: $genre } }
+                ) {
+                  count
+                }
+              }
+            }
+''';
+  static const countAudiovisualesByCategory = r'''
+            query cantidad($category: categoriaPointer) {
+              objects {
+                findaudiovisual(
+                  where: { category: { _eq: $category }}
+                ) {
+                  count
+                }
+              }
+            }
+''';
 }

@@ -1,6 +1,7 @@
 import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
 import 'package:catalogo/ui/audiovisual_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class AudiovisualDetail extends StatefulWidget {
   final AudiovisualModel audiovisual;
@@ -22,7 +23,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
             floating: false,
             backgroundColor: Colors.white,
             elevation: 1,
-            expandedHeight: MediaQuery.of(context).size.height / 1.7,
+            expandedHeight: MediaQuery.of(context).size.height * 0.8,
             primary: true,
             actionsIconTheme: IconThemeData(color: Colors.black),
             iconTheme: IconThemeData(color: Colors.black),
@@ -33,24 +34,46 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                   collapseMode: CollapseMode.pin,
                   title: AnimatedOpacity(
                       duration: Duration(milliseconds: 150),
-                      opacity: top == 80.0 ? 1.0 : 0.0,
-                      child: Text(widget.audiovisual.titulo, style: TextStyle(color: Colors.black),)),
+                      opacity: top <= 85.0 ? 1.0 : 0.0,
+                      child: Text(
+                        widget.audiovisual.titulo,
+                        style: TextStyle(color: Colors.black),
+                      )),
                   background: Container(
+                    color: Colors.grey[400],
                     child: Stack(
                         alignment: AlignmentDirectional.bottomCenter,
                         fit: StackFit.loose,
                         children: <Widget>[
-                          widget.audiovisual.imageUrl == null
-                              ? new DefaultAudiovisualImage(
-                                  heigth: MediaQuery.of(context).size.height / 1.7,
-                                )
-                              : Image.network(
-                                  widget.audiovisual.imageUrl,
-                                  fit: BoxFit.fill,
-                                  height: double.infinity,
-                                  width: double.infinity,
-                                ),
-                          // Container(height: 220, color: Colors.amber),
+                          Opacity(
+                            opacity: 1,
+                            child: widget.audiovisual.imageUrl == null
+                                ? new DefaultAudiovisualImage(
+                                    heigth: MediaQuery.of(context).size.height *
+                                        0.8
+                                  )
+                                : Image.network(
+                                    widget.audiovisual.imageUrl,
+                                    fit: BoxFit.fill,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.8,
+                                    width: double.infinity,
+                                  ),
+                          ),
+                          Opacity(
+                              opacity: 1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    gradient: RadialGradient(
+                                        colors: [
+                                      Colors.white.withOpacity(1),
+                                      Colors.transparent,
+                                    ],
+                                        radius: 1,
+                                        center: Alignment.topLeft,
+                                        focal: Alignment.topLeft)),
+                                // color: Colors.amber
+                              )),
                           CustomPaint(
                             painter: ShapesPainter(),
                             child: Container(

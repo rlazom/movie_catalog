@@ -13,26 +13,29 @@ class CategoryBlock {
   get categories => _controller.stream;
 
   CategoryBlock() {
-    // getCategory();
+    // getAllCategory();
   }
 
-  getAllCategory() async {
+  sinkAllCategory() async {
     _controller.sink.add(await _categoryRepository.getAllCategory());
   }
 
+  Future<List<CategoryModel>> getAllCategories() async =>
+      _categoryRepository.getAllCategory();
+
   addCategory(CategoryModel category) async {
     await _categoryRepository.insertCategory(category);
-    getAllCategory();
+    sinkAllCategory();
   }
 
   updateCategory(CategoryModel category) async {
     await _categoryRepository.updateCategory(category);
-    getAllCategory();
+    sinkAllCategory();
   }
 
   deleteCategoryById(String id) async {
     _categoryRepository.deleteCategoryById(id);
-    getAllCategory();
+    sinkAllCategory();
   }
 
   dispose() {
@@ -52,11 +55,28 @@ class AudiovisualBlock {
     // getCategory();
   }
 
-  findAudiovisualList(int limit, int skip, String category, String genre, String titulo) async {
-    _controller.sink.add(await _audiovisualRepository.findAudiovisualList(limit, skip, category, genre, titulo));
+  findAudiovisualList(
+      int limit, int skip, String category, String genre, String titulo) async {
+    _controller.sink.add(await _audiovisualRepository.findAudiovisualList(
+        limit, skip, category, genre, titulo));
+  }
+
+  findAudiovisualCount(String category, {String genre}) async {
+    return _audiovisualRepository.findAudiovisualCount(category, genre: genre);
   }
 
   dispose() {
     _controller.close();
   }
+}
+
+class UserBloc {
+  final UserRepository repository = UserRepository();
+
+  Future login(String user, String pass) => repository.login(user, pass);
+
+  Future signUp(String user, String pass, String email) =>
+      repository.signUp(user, pass, email);
+
+  Future logout() => repository.logout();
 }
