@@ -10,8 +10,8 @@ LoginService service = new LoginService();
 
 class Resolver {
   // final parseUrl = 'http://192.168.1.107:1337';
-  // final String parseUrl = 'http://172.17.0.1:1337';
-  final String parseUrl = 'http://10.42.0.1:1337';
+  final String parseUrl = 'http://172.17.0.1:1337';
+  // final String parseUrl = 'http://10.42.0.1:1337';
 
   // final uri = '$parseUrl/graphql';
   final appId = 'yourappid';

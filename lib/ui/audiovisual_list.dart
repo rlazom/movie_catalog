@@ -2,6 +2,8 @@ import 'package:catalogo/block/block.dart';
 import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
 import 'package:catalogo/model/category/CategoryModel.dart';
 import 'package:catalogo/ui/home.dart';
+import 'package:flip_card/flip_card.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -49,6 +51,7 @@ class AudiovisualList extends StatelessWidget {
   Widget getAudiovisualCardWidget(
       BuildContext context, AsyncSnapshot<List<AudiovisualModel>> snapshot) {
     return new Container(
+      color: Colors.white,
       child: new Center(
           child: snapshot != null &&
                   snapshot.connectionState != ConnectionState.waiting
@@ -65,14 +68,16 @@ class AudiovisualList extends StatelessWidget {
 
   Widget _buildGrid(
       BuildContext context, AsyncSnapshot<List<AudiovisualModel>> snapshot) {
-    int columns = (MediaQuery.of(context).size.width ~/ 128);
+    // int columns = (MediaQuery.of(context).size.width ~/ 128);
+    int columns =
+        MediaQuery.of(context).orientation == Orientation.portrait ? 2 : 4;
     return GridView.builder(
         gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns, childAspectRatio: 0.7),
         itemCount: snapshot.data.length,
         itemBuilder: (context, itemPosition) {
           AudiovisualModel audiovisual = snapshot.data[itemPosition];
-          return _buildItem(audiovisual, context);
+          return _buildItemFlipCard(audiovisual, context);
         });
   }
 
@@ -125,8 +130,81 @@ class AudiovisualList extends StatelessWidget {
     );
   }
 
-  void _navigateToDetails(
+  Widget _buildItemFlipCard(
       AudiovisualModel audiovisual, BuildContext context) {
+    Widget back = Container(
+      color: Colors.black,
+      width: double.infinity,
+      padding: EdgeInsets.all(10),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              audiovisual.titulo,
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+            Container(
+              height: 10,
+            ),
+            IconButton(
+              icon: Icon(CupertinoIcons.info),
+              color: Colors.white70,
+              iconSize: 40,
+              onPressed: () => _navigateToDetails(audiovisual, context),
+            )
+            // Text(
+            //   'Ver mas...',
+            //   textAlign: TextAlign.center,
+            //   style: TextStyle(
+            //     fontSize: 16,
+            //     color: Colors.grey,
+            //   ),
+            // )
+          ],
+        ),
+      ),
+    );
+    Widget front = audiovisual.imageUrl != null
+        ? Image.network(
+            audiovisual.imageUrl,
+            fit: BoxFit.fill,
+            height: double.infinity,
+          )
+        : back;
+
+    return Container(
+      color: Colors.white,
+      margin: EdgeInsets.all(5),
+      padding: EdgeInsets.all(5),
+      child: FlipCard(
+        flipOnTouch: audiovisual.imageUrl != null,
+        speed: 250,
+        back: Card(
+            borderOnForeground: true,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10))),
+            elevation: 10,
+            clipBehavior: Clip.hardEdge,
+            child: back),
+        front: Card(
+            borderOnForeground: true,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10))),
+            elevation: 10,
+            clipBehavior: Clip.hardEdge,
+            child: front),
+      ),
+    );
+  }
+
+  void _navigateToDetails(AudiovisualModel audiovisual, BuildContext context) {
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -153,13 +231,6 @@ class DefaultAudiovisualImage extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [Colors.grey, Colors.black54, Colors.black])),
-      child: Center(
-        child: Icon(
-          Icons.image,
-          color: Colors.grey,
-          size: 100,
-        ),
-      ),
     );
   }
 }

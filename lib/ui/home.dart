@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.black),
-        elevation: 5,
+        elevation: 0,
         backgroundColor: Colors.white,
         title: Text(
           title,
@@ -178,15 +178,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget getHomePage() {
-    return RefreshIndicator(
-      child: StreamBuilder(
-        stream: block.categories,
-        builder: (BuildContext context,
-            AsyncSnapshot<List<CategoryModel>> snapshot) {
-          return getCategoryCardWidget(context, snapshot);
-        },
+    return Container(
+      color: Colors.black12,
+      child: RefreshIndicator(
+        child: StreamBuilder(
+          stream: block.categories,
+          builder: (BuildContext context,
+              AsyncSnapshot<List<CategoryModel>> snapshot) {
+            return getCategoryCardWidget(context, snapshot);
+          },
+        ),
+        onRefresh: () => _refresh(),
       ),
-      onRefresh: () => _refresh(),
     );
   }
 
@@ -218,17 +221,17 @@ class _HomePageState extends State<HomePage> {
       onTap: () => goToCategoryDetail(categoryModel),
       child: Card(
         shape: RoundedRectangleBorder(
-            side: BorderSide(color: Colors.black, width: 2),
+            side: BorderSide(color: Colors.blue, width: 2),
             borderRadius: BorderRadius.circular(10)),
-        color: Colors.white,
+        color: Colors.blue.withOpacity(0.3),
         margin: EdgeInsets.all(10),
-        elevation: 10,
+        elevation: 5,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Center(
             child: Text(
               categoryModel.name,
-              style: TextStyle(color: Colors.black87),
+              style: TextStyle(color: Colors.white, fontSize: 20),
             ),
           ),
         ),

@@ -17,7 +17,6 @@ class CategoryDetail extends StatelessWidget {
         child: Container(
           // width: tabWidth > 0 ? tabWidth : null,
           alignment: Alignment.center,
-
           child: Text(
             g.name,
             textAlign: TextAlign.center,
@@ -46,6 +45,7 @@ class CategoryDetail extends StatelessWidget {
             flex: 1,
             child: Container(
               width: double.infinity,
+              // margin: EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 5),
               color: Colors.white,
               child: TabBar(
                 isScrollable: true,

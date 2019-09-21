@@ -1,7 +1,10 @@
+import 'dart:ui' as prefix0;
+
 import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
 import 'package:catalogo/ui/audiovisual_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:photo_view/photo_view.dart';
 
 class AudiovisualDetail extends StatefulWidget {
   final AudiovisualModel audiovisual;
@@ -16,92 +19,107 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-            pinned: true,
-            floating: false,
-            backgroundColor: Colors.white,
-            elevation: 1,
-            expandedHeight: MediaQuery.of(context).size.height * 0.8,
-            primary: true,
-            actionsIconTheme: IconThemeData(color: Colors.black),
-            iconTheme: IconThemeData(color: Colors.black),
-            flexibleSpace: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                var top = constraints.biggest.height;
-                return FlexibleSpaceBar(
-                  collapseMode: CollapseMode.pin,
-                  title: AnimatedOpacity(
-                      duration: Duration(milliseconds: 150),
-                      opacity: top <= 85.0 ? 1.0 : 0.0,
-                      child: Text(
-                        widget.audiovisual.titulo,
-                        style: TextStyle(color: Colors.black),
-                      )),
-                  background: Container(
-                    color: Colors.grey[400],
-                    child: Stack(
-                        alignment: AlignmentDirectional.bottomCenter,
-                        fit: StackFit.loose,
-                        children: <Widget>[
-                          Opacity(
-                            opacity: 1,
-                            child: widget.audiovisual.imageUrl == null
-                                ? new DefaultAudiovisualImage(
-                                    heigth: MediaQuery.of(context).size.height *
-                                        0.8
-                                  )
-                                : Image.network(
-                                    widget.audiovisual.imageUrl,
-                                    fit: BoxFit.fill,
-                                    height: MediaQuery.of(context).size.height *
-                                        0.8,
-                                    width: double.infinity,
-                                  ),
-                          ),
-                          Opacity(
-                              opacity: 1,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    gradient: RadialGradient(
-                                        colors: [
-                                      Colors.white.withOpacity(1),
-                                      Colors.transparent,
-                                    ],
-                                        radius: 1,
-                                        center: Alignment.topLeft,
-                                        focal: Alignment.topLeft)),
-                                // color: Colors.amber
-                              )),
-                          CustomPaint(
-                            painter: ShapesPainter(),
-                            child: Container(
-                              height: 50,
-                              color: Colors.transparent,
-                            ),
-                          )
-                        ]),
-                  ),
-                );
-              },
-            ),
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverOverlapAbsorber(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+              child: SliverSafeArea(
+                top: false,
+                sliver: getAppBar(context),
+              ),
+            )
+          ];
+        },
+        body: Container(
+          color: Colors.black.withAlpha(32),
+          child: CustomScrollView(
+            slivers: <Widget>[getContent()],
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(buildAudiovisualBody()),
-          )
-        ],
+        ),
+      ),
+    );
+  }
+
+  SliverPadding getContent() {
+    return SliverPadding(
+        padding: const EdgeInsets.all(8.0),
+        sliver: SliverList(
+          delegate: SliverChildListDelegate(buildAudiovisualBody()),
+        ));
+  }
+
+  SliverAppBar getAppBar(BuildContext context) {
+    return SliverAppBar(
+      pinned: true,
+      floating: false,
+      backgroundColor: Colors.black87,
+      elevation: 5,
+      expandedHeight: MediaQuery.of(context).size.height * 0.6,
+      primary: true,
+      actionsIconTheme: IconThemeData(color: Colors.white),
+      iconTheme: IconThemeData(color: Colors.white),
+      flexibleSpace: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          var top = constraints.biggest.height;
+          return FlexibleSpaceBar(
+            collapseMode: CollapseMode.parallax,
+            title: AnimatedOpacity(
+                duration: Duration(milliseconds: 150),
+                opacity: top <= 85.0 ? 1.0 : 0.0,
+                child: Text(
+                  widget.audiovisual.titulo,
+                  style: TextStyle(color: Colors.white),
+                )),
+            background: Stack(alignment: AlignmentDirectional.center,
+                // fit: StackFit.loose,
+                children: <Widget>[
+                  widget.audiovisual.imageUrl == null
+                      ? new DefaultAudiovisualImage(
+                          heigth: MediaQuery.of(context).size.height * 0.6)
+                      : Image.network(
+                          widget.audiovisual.imageUrl,
+                          fit: BoxFit.fill,
+                          // height: MediaQuery.of(context).size.height * 0.6,
+                          height: double.infinity,
+                          // color: Colors.black54.withAlpha(172),
+                          // colorBlendMode: BlendMode.srcOver,
+                        ),
+                  GestureDetector(
+                    onTap: () => showAudiovisualImage(context),
+                    child: BackdropFilter(
+                      filter:
+                          new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Container(
+                        decoration: new BoxDecoration(
+                          color: Colors.black.withOpacity(0.75),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Text(
+                      widget.audiovisual.titulo,
+                      maxLines: 3,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 26),
+                    ),
+                  ),
+                ]),
+          );
+        },
       ),
     );
   }
 
   buildAudiovisualBody() {
-    return [
-      new AudiovisualTitle(
-          title: widget.audiovisual.titulo, value: widget.audiovisual.titulo),
+    var children = [
+      // new AudiovisualTitle(
+      //     title: widget.audiovisual.titulo, value: widget.audiovisual.titulo),
 
       /// SINOPSIS
-      buildDivider(widget.audiovisual.sinopsis),
+      // buildDivider(widget.audiovisual.sinopsis),
       new AudiovisualContentHorizontal(
         label: 'Sinopsis',
         content: widget.audiovisual.sinopsis,
@@ -170,6 +188,18 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
           label: 'Reparto', content: widget.audiovisual.reparto),
     ];
     /* ) */;
+    return <Widget>[
+      Card(
+        margin: EdgeInsets.all(10),
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+          child: Column(
+            children: children,
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget buildDivider(String value) {
@@ -184,6 +214,37 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
             color: Colors.black,
           ),
         ),
+      ),
+    );
+  }
+
+  showAudiovisualImage(BuildContext context) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ZoomImage(
+                  imageUrl: widget.audiovisual.imageUrl,
+                )));
+  }
+}
+
+class ZoomImage extends StatelessWidget {
+  final String imageUrl;
+  const ZoomImage({Key key, this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: <Widget>[
+          Container(child: PhotoView(imageProvider: NetworkImage(imageUrl))),
+          SizedBox(
+              height: 80,
+              child: AppBar(
+                backgroundColor: Colors.transparent,
+                iconTheme: IconThemeData(color: Colors.white),
+              )),
+        ],
       ),
     );
   }
@@ -253,7 +314,7 @@ class ShapesPainter extends CustomPainter {
     // var rect = Rect.fromLTWH(0, 0, size.width, size.height);
     // draw the rectangle using the paint
     // canvas.drawRect(rect, paint);
-    paint.color = Colors.white;
+    paint.color = Colors.black12;
     // create a path
     var path = Path();
     // path.lineTo(0, 30);

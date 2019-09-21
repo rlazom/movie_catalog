@@ -29,6 +29,8 @@ dependencies:
   graphql: ^1.0.1-beta
   parse_server_sdk: ^1.0.21
   intro_views_flutter: '^2.6.0'
+  photo_view: 0.4.2
+  flip_card: 0.3.0
 
 dev_dependencies:
   flutter_test:
