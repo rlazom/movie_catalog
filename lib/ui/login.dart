@@ -414,7 +414,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     FocusScope.of(context).requestFocus(new FocusNode());
     if (user != null && user.isNotEmpty && pass != null && pass.isNotEmpty) {
-      block.login(user, pass).then((result) {
+      block.login(user, pass).then((result) async{
         if (result != null) {
           setState(() {
             actualUsername = user;
@@ -423,10 +423,10 @@ class _LoginPageState extends State<LoginPage> {
             clearControllers();
             isLoading = false;
           });
-          service.setString(TOKEN_KEY, result.sessionToken);
-          service.setString(USERNAME_KEY, user);
-          service.setString(EMAIL_KEY, result.emailAddress);
-          service.setString(PASSWORD_KEY, pass);
+          await service.setString(TOKEN_KEY, result.sessionToken);
+          await service.setString(USERNAME_KEY, user);
+          await service.setString(EMAIL_KEY, result.emailAddress);
+          await service.setString(PASSWORD_KEY, pass);
 
           Toast.show('Welcome $user!', context,
               backgroundColor: Colors.green, textColor: Colors.white);

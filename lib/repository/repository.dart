@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:catalogo/graphql/resolver.dart';
-import 'package:catalogo/model/audiovisual/category.dart';
 import 'package:catalogo/model/category/CategoryModel.dart';
 
 class CategoryRepository {

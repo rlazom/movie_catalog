@@ -1,12 +1,11 @@
 import 'package:catalogo/block/block.dart';
 import 'package:catalogo/model/category/CategoryModel.dart';
 import 'package:catalogo/ui/category_detail.dart';
+import 'package:catalogo/ui/search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class HomePage extends StatefulWidget {
-  final int casa = 34;
-
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -15,7 +14,8 @@ class MyInheritedWidget extends InheritedWidget {
   final CategoryModel myCategory;
   final CategoryModel myGenre;
 
-  MyInheritedWidget({@required this.myCategory, this.myGenre, Widget child, Key key})
+  MyInheritedWidget(
+      {@required this.myCategory, this.myGenre, Widget child, Key key})
       : super(key: key, child: child);
 
   @override
@@ -33,14 +33,13 @@ class _HomePageState extends State<HomePage> {
   var title = 'Inicio';
   String selectedItemDrawerKey = '0';
   Widget actualBody;
-//  CategoryModel actualCategory;
+  CategoryModel actualCategory;
   final CategoryBlock block = CategoryBlock();
   final AudiovisualBlock audiovisualBlock = AudiovisualBlock();
 
   @override
   void initState() {
     super.initState();
-//    loadData();
     actualBody = getHomePage();
   }
 
@@ -60,6 +59,17 @@ class _HomePageState extends State<HomePage> {
           title,
           style: TextStyle(color: Colors.black),
         ),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              return showSearch(
+                  context: context, delegate: AudiovisualSearchDelegate(
+                    // category: actualCategory != null ? actualCategory.id : null
+                  ));
+            },
+          )
+        ],
       ),
       drawer: Drawer(
         child: Container(
@@ -125,7 +135,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      body: actualBody, // This trailing comma makes auto-formatting nicer for build methods.
+      body:
+          actualBody, // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -170,16 +181,23 @@ class _HomePageState extends State<HomePage> {
         myCategory: c,
         child: new CategoryDetail(
 //          category: c,
-        ),
+            ),
       );
       title = c.name;
       selectedItemDrawerKey = c.id;
+      actualCategory = c;
     });
   }
 
   Widget getHomePage() {
     return Container(
-      color: Colors.black12,
+      // decoration: BoxDecoration(
+      //   image: DecorationImage(
+      //     image: AssetImage('assets/images/background.jpg'),
+      //     fit: BoxFit.fill,
+      //     colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.darken),
+      //   )
+      // ),
       child: RefreshIndicator(
         child: StreamBuilder(
           stream: block.categories,

@@ -31,6 +31,7 @@ dependencies:
   intro_views_flutter: '^2.6.0'
   photo_view: 0.4.2
   flip_card: 0.3.0
+  font_awesome_flutter: 8.4.0
 
 dev_dependencies:
   flutter_test:

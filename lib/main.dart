@@ -10,6 +10,7 @@ void main() async {
 
   bool _result = await service.getString(USERNAME_KEY) != null &&
       await service.getString(TOKEN_KEY) != null;
+
   if (_result) {
     defaultWidget = Home();
   }

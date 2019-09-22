@@ -1,5 +1,4 @@
 import 'package:catalogo/graphql/queries.dart';
-import 'package:catalogo/graphql/test/AudiovisualConstraints.dart';
 import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
 import 'package:catalogo/model/category/CategoryModel.dart';
 import 'package:catalogo/service.dart';
@@ -21,7 +20,7 @@ class Resolver {
   var token;
 
   Resolver() {
-    Parse().initialize(appId, '$parseUrl/parse', debug: true);
+    // Parse().initialize(appId, '$parseUrl/parse', debug: true);
   }
 
   Future login(String user, String pass) async {
@@ -62,7 +61,7 @@ class Resolver {
       var logoutResult = false;
 
       final QueryResult result =
-      await _client.mutate(MutationOptions(document: CFG.loguotMutation));
+          await _client.mutate(MutationOptions(document: CFG.loguotMutation));
       if (!result.hasErrors) {
         logoutResult = result.data['users']['logOut'];
         if (logoutResult) {
@@ -101,11 +100,11 @@ class Resolver {
       final GraphQLClient _client = await client();
 
       final QueryResult result =
-      await _client.query(QueryOptions(document: CFG.queryAllCategorias));
+          await _client.query(QueryOptions(document: CFG.queryAllCategorias));
 
       if (!result.hasErrors) {
         final List<dynamic> list =
-        result.data['objects']['findcategoria']['results'] as List<dynamic>;
+            result.data['objects']['findcategoria']['results'] as List<dynamic>;
         list.forEach((c) {
           resultList.add(CategoryModel.fromGraphqlObject(c));
         });
@@ -117,8 +116,8 @@ class Resolver {
     }
   }
 
-  Future<List<AudiovisualModel>> findAudiovisualList(int limit, int skip,
-      String category, String genre, String title) async {
+  Future<List<AudiovisualModel>> findAudiovisualList(
+      int limit, int skip, String category, String genre, String title) async {
     List<AudiovisualModel> resultList = [];
     try {
       final GraphQLClient _client = await client();
@@ -126,25 +125,22 @@ class Resolver {
       var options = QueryOptions(document: CFG.findAudiovisualQuery);
       var variables = <String, dynamic>{'limit': limit, 'skip': skip};
 
-      List<String> wheres = [];
+      Map<String, dynamic> map = {};
+
       if (category != null && category.isNotEmpty) {
-        wheres.add('category: {_eq: "$category"}');
+        await map.putIfAbsent('category', () => {"_eq": category});
       }
       if (genre != null && genre.isNotEmpty) {
-        wheres.add('genre: {_eq: "$genre"}');
+        await map.putIfAbsent('genre', () => {"_eq": genre});
       }
       if (title != null && title.isNotEmpty) {
-        wheres.add('titulo: {_text: {_search: {_term: "$title"}}}');
+        await map.putIfAbsent(
+            'titulo', () => {"_regex": title, "_options": 'i'});
       }
-      if (wheres.isNotEmpty) {
+      if (map.isNotEmpty) {
         variables.putIfAbsent('where', () {
-          return AudiovisualConstraints.fromJsonMap({
-//            "titulo": {"_text": {"_search": {"_term": ""}}},
-            "category": {"_eq": category},
-            "genre": {"_eq": genre}
-          }).toJson();
+          return map;
         });
-//        variables.putIfAbsent('where', () => wheres.join(','));
       }
 
       options.variables = variables;
@@ -152,7 +148,7 @@ class Resolver {
 
       if (!result.hasErrors) {
         final List<dynamic> list = result.data['objects']['findaudiovisual']
-        ['results'] as List<dynamic>;
+            ['results'] as List<dynamic>;
         list.forEach((c) {
           resultList.add(AudiovisualModel.fromGraphqlObject(c));
         });

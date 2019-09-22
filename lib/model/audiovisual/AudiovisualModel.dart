@@ -1,6 +1,7 @@
 import 'package:catalogo/model/audiovisual/image.dart';
 import 'package:catalogo/model/audiovisual/category.dart';
 import 'package:catalogo/model/audiovisual/genre.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 class AudiovisualModel {
   String titulo;
@@ -23,6 +24,11 @@ class AudiovisualModel {
 
   AudiovisualModel(this.titulo, this.sinopsis, this.updatedAt, this.tamanno,
       this.formato, this.imageUrl, this.category, this.genre);
+    
+  AudiovisualModel.build({this.titulo, this.sinopsis, this.updatedAt,
+  this.tamanno, this.formato, Image image, Category category, Genre genre,
+  this.imageUrl, this.capitulos, this.director, this.anno, this.productora,
+  this.duracion, this.idioma, this.reparto, this.pais});
 
   AudiovisualModel.fromJsonMap(Map<String, dynamic> map)
       : titulo = map["titulo"],
