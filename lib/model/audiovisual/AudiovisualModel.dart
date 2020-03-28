@@ -1,9 +1,9 @@
 import 'package:catalogo/model/audiovisual/image.dart';
 import 'package:catalogo/model/audiovisual/category.dart';
 import 'package:catalogo/model/audiovisual/genre.dart';
-import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 class AudiovisualModel {
+  final String id;
   String titulo;
   String sinopsis;
   String updatedAt;
@@ -23,22 +23,37 @@ class AudiovisualModel {
   String pais;
 
   AudiovisualModel(this.titulo, this.sinopsis, this.updatedAt, this.tamanno,
-      this.formato, this.imageUrl, this.category, this.genre);
-    
-  AudiovisualModel.build({this.titulo, this.sinopsis, this.updatedAt,
-  this.tamanno, this.formato, Image image, Category category, Genre genre,
-  this.imageUrl, this.capitulos, this.director, this.anno, this.productora,
-  this.duracion, this.idioma, this.reparto, this.pais});
+      this.formato, this.imageUrl, this.category, this.genre, this.id);
 
-  AudiovisualModel.fromJsonMap(Map<String, dynamic> map)
-      : titulo = map["titulo"],
-        sinopsis = map["sinopsis"],
-        updatedAt = map["updatedAt"],
-        tamanno = map["tamanno"],
-        formato = map["formato"],
-        image = Image.fromJsonMap(map["image"]),
-        category = Category.fromJsonMap(map["category"]),
-        genre = Genre.fromJsonMap(map["genre"]);
+  AudiovisualModel.build(
+      {this.titulo,
+      this.sinopsis,
+      this.updatedAt,
+      this.tamanno,
+      this.formato,
+      Image image,
+      Category category,
+      Genre genre,
+      this.imageUrl,
+      this.capitulos,
+      this.director,
+      this.anno,
+      this.productora,
+      this.duracion,
+      this.idioma,
+      this.reparto,
+      this.pais,
+      this.id});
+
+//  AudiovisualModel.fromJsonMap(Map<String, dynamic> map)
+//      : titulo = map["titulo"],
+//        sinopsis = map["sinopsis"],
+//        updatedAt = map["updatedAt"],
+//        tamanno = map["tamanno"],
+//        formato = map["formato"],
+//        image = Image.fromJsonMap(map["image"]),
+//        category = Category.fromJsonMap(map["category"]),
+//        genre = Genre.fromJsonMap(map["genre"]);
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
@@ -67,7 +82,32 @@ class AudiovisualModel {
         a['formato'],
         imageUrl,
         Category.fromJsonMap(a['category']),
-        Genre.fromJsonMap(a['genre']));
+        Genre.fromJsonMap(
+          a['genre'],
+        ),
+        a['objectId']);
+    audiovisualModel.capitulos = a['capitulos'];
+    audiovisualModel.director = a['director'];
+    audiovisualModel.anno = a['anno'];
+    audiovisualModel.productora = a['productora'];
+    audiovisualModel.duracion = a['duracion'];
+    audiovisualModel.idioma = a['idioma'];
+    audiovisualModel.reparto = a['reparto'];
+    audiovisualModel.pais = a['pais'];
+    return audiovisualModel;
+  }
+
+  static AudiovisualModel fromAudiovisualDbTableData(dynamic a) {
+    var audiovisualModel = AudiovisualModel(
+        a['titulo'],
+        a['sinopsis'],
+        a['updatedAt'],
+        a['tamanno'],
+        a['formato'],
+        null,
+        Category.fromJsonMap(a['category']),
+        Genre.fromJsonMap(a['genre']),
+        a['id']);
     audiovisualModel.capitulos = a['capitulos'];
     audiovisualModel.director = a['director'];
     audiovisualModel.anno = a['anno'];

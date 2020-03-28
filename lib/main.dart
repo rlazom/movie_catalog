@@ -1,47 +1,64 @@
-import 'package:catalogo/service.dart';
-import 'package:catalogo/ui/home.dart';
-import 'package:catalogo/ui/onboard.dart';
+import 'package:catalogo/data/moor_database.dart';
+import 'package:catalogo/screens/audiovisual_detail_screen.dart';
+import 'package:catalogo/screens/categories_overview.dart';
+import 'package:catalogo/screens/search_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-LoginService service = new LoginService();
+import 'providers/audiovisuales_provider.dart';
+import 'providers/categories_provider.dart';
+import 'screens/category_detail.dart';
+import 'screens/home_screen.dart';
 
-void main() async {
-  Widget defaultWidget = Onboard();
+//LoginService service = new LoginService();
 
-  bool _result = await service.getString(USERNAME_KEY) != null &&
-      await service.getString(TOKEN_KEY) != null;
+//void main() => runApp(Home());
+void main() => runApp(HomeImbd());
 
-  if (_result) {
-    defaultWidget = Home();
-  }
-
-  runApp(defaultWidget);
-}
-
-class Onboard extends StatelessWidget {
+class HomeImbd extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Catalogo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [ChangeNotifierProvider.value(value: AudiovisualListProvider()),],
+      child: MaterialApp(
+        title: 'Imbd',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+            primarySwatch: Colors.amber,
+            accentColor: Colors.amberAccent,
+            fontFamily: 'Dosis'),
+        themeMode: ThemeMode.dark,
+        home: ImbdScreen(),
+        routes: {AudiovisualDetail.routeName: (ctx) => AudiovisualDetail()},
       ),
-      home: OnboardPage(),
     );
   }
 }
 
 class Home extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Catalogo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    print('main');
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: CategoriesProvider()),
+        Provider<MyDatabase>(
+          create: (context) => MyDatabase(),
+          dispose: (context, db) => db.close(),
+        )
+      ],
+      child: MaterialApp(
+        title: 'Catalogo',
+        theme: ThemeData(
+            primarySwatch: Colors.blue,
+            accentColor: Colors.blueAccent,
+            fontFamily: 'Dosis'),
+        home: HomeScreen(),
+        routes: {
+          CategoryDetailScreen.routeName: (ctx) => CategoryDetailScreen(),
+        },
       ),
-      home: HomePage(),
     );
   }
 }

@@ -1,23 +1,49 @@
 import 'dart:ui' as prefix0;
-
 import 'package:catalogo/model/audiovisual/AudiovisualModel.dart';
-import 'package:catalogo/ui/audiovisual_list.dart';
+import 'package:catalogo/providers/audiovisual_single_provider.dart';
+import 'package:catalogo/providers/audiovisuales_provider.dart';
+import 'package:catalogo/widgets/default_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:photo_view/photo_view.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
 class AudiovisualDetail extends StatefulWidget {
-  final AudiovisualModel audiovisual;
-
-  const AudiovisualDetail({Key key, this.audiovisual}) : super(key: key);
+  static const routeName = '/audiovisualDetail';
 
   @override
   _AudiovisualDetailState createState() => _AudiovisualDetailState();
 }
 
 class _AudiovisualDetailState extends State<AudiovisualDetail> {
+  var _isLoading = true;
+  AudiovisualModel _audiovisual;
+
+  @override
+  void didChangeDependencies() {
+    final id = ModalRoute.of(context).settings.arguments as String; //id
+    final audiovisualProvider =
+        Provider.of<AudiovisualListProvider>(context, listen: false)
+            .findById(id);
+    audiovisualProvider.findMyData().then((value) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _audiovisual = value;
+        });
+      }
+    });
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+          body: Container(
+              child:
+                  Center(child: SizedBox(child: CircularProgressIndicator()))));
+    }
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -64,46 +90,58 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
           var top = constraints.biggest.height;
           return FlexibleSpaceBar(
             collapseMode: CollapseMode.parallax,
+            centerTitle: false,
             title: AnimatedOpacity(
                 duration: Duration(milliseconds: 150),
                 opacity: top <= 85.0 ? 1.0 : 0.0,
                 child: Text(
-                  widget.audiovisual.titulo,
+                  _audiovisual.titulo,
+                  maxLines: 1,
                   style: TextStyle(color: Colors.white),
                 )),
             background: Stack(alignment: AlignmentDirectional.center,
                 // fit: StackFit.loose,
                 children: <Widget>[
-                  widget.audiovisual.imageUrl == null
+                  _audiovisual.imageUrl == null
                       ? new DefaultAudiovisualImage(
                           heigth: MediaQuery.of(context).size.height * 0.6)
                       : Image.network(
-                          widget.audiovisual.imageUrl,
+                          _audiovisual.imageUrl,
                           fit: BoxFit.fill,
                           // height: MediaQuery.of(context).size.height * 0.6,
                           height: double.infinity,
                           // color: Colors.black54.withAlpha(172),
                           // colorBlendMode: BlendMode.srcOver,
                         ),
-                  GestureDetector(
-                    onTap: () => showAudiovisualImage(context),
-                    child: BackdropFilter(
-                      filter:
-                          new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                      child: Container(
-                        decoration: new BoxDecoration(
-                          color: Colors.black.withOpacity(0.75),
-                        ),
+                  BackdropFilter(
+                    filter: new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                    child: Container(
+                      decoration: new BoxDecoration(
+                        color: Colors.black.withOpacity(0.75),
                       ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10),
-                    child: Text(
-                      widget.audiovisual.titulo,
-                      maxLines: 3,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 26),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          _audiovisual.titulo,
+                          maxLines: 3,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white, fontSize: 26),
+                        ),
+                        IconButton(
+                          icon: Icon(FontAwesomeIcons.solidImage),
+                          color: Colors.white,
+                          iconSize: 50,
+                          onPressed: _audiovisual.imageUrl != null &&
+                                  _audiovisual.imageUrl.isNotEmpty
+                              ? () => showAudiovisualImage(context)
+                              : null,
+                        )
+                      ],
                     ),
                   ),
                 ]),
@@ -116,76 +154,76 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
   buildAudiovisualBody() {
     var children = [
       // new AudiovisualTitle(
-      //     title: widget.audiovisual.titulo, value: widget.audiovisual.titulo),
+      //     title: _audiovisual.titulo, value: _audiovisual.titulo),
 
       /// SINOPSIS
-      // buildDivider(widget.audiovisual.sinopsis),
+      // buildDivider(_audiovisual.sinopsis),
       new AudiovisualContentHorizontal(
         label: 'Sinopsis',
-        content: widget.audiovisual.sinopsis,
+        content: _audiovisual.sinopsis,
       ),
 
       /// PAIS
-      buildDivider(widget.audiovisual.pais),
+      buildDivider(_audiovisual.pais),
       new AudiovisualContentHorizontal(
         label: 'Pais',
-        content: widget.audiovisual.pais,
+        content: _audiovisual.pais,
       ),
 
       /// TAMAÑO
-      buildDivider(widget.audiovisual.tamanno),
+      buildDivider(_audiovisual.tamanno),
       new AudiovisualContentHorizontal(
         label: 'Tamaño',
-        content: widget.audiovisual.tamanno,
+        content: _audiovisual.tamanno,
       ),
 
       /// FORMATO
-      buildDivider(widget.audiovisual.formato),
+      buildDivider(_audiovisual.formato),
       new AudiovisualContentHorizontal(
         label: 'Formato',
-        content: widget.audiovisual.formato,
+        content: _audiovisual.formato,
       ),
 
       /// CAPITULOS
-      buildDivider(widget.audiovisual.capitulos),
+      buildDivider(_audiovisual.capitulos),
       new AudiovisualContentHorizontal(
         label: 'Capitulos',
-        content: widget.audiovisual.capitulos,
+        content: _audiovisual.capitulos,
       ),
 
       /// DIRECTOR
-      buildDivider(widget.audiovisual.director),
+      buildDivider(_audiovisual.director),
       new AudiovisualContentHorizontal(
         label: 'Director',
-        content: widget.audiovisual.director,
+        content: _audiovisual.director,
       ),
 
       /// AÑO
-      buildDivider(widget.audiovisual.anno),
+      buildDivider(_audiovisual.anno),
       new AudiovisualContentHorizontal(
         label: 'Año',
-        content: widget.audiovisual.anno,
+        content: _audiovisual.anno,
       ),
 
       /// PRODUCTORA
-      buildDivider(widget.audiovisual.productora),
+      buildDivider(_audiovisual.productora),
       new AudiovisualContentHorizontal(
-          label: 'Productora', content: widget.audiovisual.productora),
+          label: 'Productora', content: _audiovisual.productora),
 
       /// DURACION
-      buildDivider(widget.audiovisual.duracion),
+      buildDivider(_audiovisual.duracion),
       new AudiovisualContentHorizontal(
-          label: 'Duración', content: widget.audiovisual.duracion),
+          label: 'Duración', content: _audiovisual.duracion),
 
       ///
-      buildDivider(widget.audiovisual.idioma),
+      buildDivider(_audiovisual.idioma),
       new AudiovisualContentHorizontal(
-          label: 'Idioma', content: widget.audiovisual.idioma),
+          label: 'Idioma', content: _audiovisual.idioma),
 
       ///
-      buildDivider(widget.audiovisual.reparto),
+      buildDivider(_audiovisual.reparto),
       new AudiovisualContentHorizontal(
-          label: 'Reparto', content: widget.audiovisual.reparto),
+          label: 'Reparto', content: _audiovisual.reparto),
     ];
     /* ) */;
     return <Widget>[
@@ -223,21 +261,36 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
         context,
         MaterialPageRoute(
             builder: (context) => ZoomImage(
-                  imageUrl: widget.audiovisual.imageUrl,
+                  imageUrl: _audiovisual.imageUrl,
                 )));
   }
 }
 
 class ZoomImage extends StatelessWidget {
   final String imageUrl;
+
   const ZoomImage({Key key, this.imageUrl}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    double h = MediaQuery.of(context).size.height;
+    double w = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          Container(child: PhotoView(imageProvider: NetworkImage(imageUrl))),
+//          Container(
+//              child: PhotoView(
+//                  imageProvider: NetworkImage(imageUrl))),
+          Container(
+              color: Colors.black,
+              child: Center(
+                  child: Image.network(
+                imageUrl,
+                width: w,
+                height: h * 0.8,
+                fit: BoxFit.fill,
+              ))),
           SizedBox(
               height: 80,
               child: AppBar(

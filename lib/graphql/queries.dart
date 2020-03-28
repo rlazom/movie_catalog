@@ -7,10 +7,10 @@ class CFG {
             }
    ''';
   static const queryAllCategorias = r'''
-            query AllCategorias {
-              objects {
-                findcategoria {
-                  results{
+            query categorias {
+              categorias(order: categoria_ASC) {
+                edges {
+                  node {
                     objectId
                     categoria
                     id_padre
@@ -18,6 +18,29 @@ class CFG {
                 }
               }
             }
+          ''';
+  static const findAudiovisualQuerySearch = r'''
+            query searchAudiovisual($where: AudiovisualWhereInput) {
+  audiovisuals(order: titulo_ASC, where: $where) {
+     edges{
+      node{
+				...audiovisual
+			}
+    }
+  }
+}
+
+fragment audiovisual on Audiovisual {
+  objectId
+	titulo
+  updatedAt
+  image {
+    image {
+      url
+    }
+  }
+}
+
           ''';
   static const findAudiovisualQuery = r'''
             query searchAudiovisual($limit: Int, $skip: Int, $where:audiovisualConstraints) {
