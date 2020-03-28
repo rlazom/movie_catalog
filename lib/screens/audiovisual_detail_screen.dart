@@ -44,23 +44,29 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
               child:
                   Center(child: SizedBox(child: CircularProgressIndicator()))));
     }
-    return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
-            SliverOverlapAbsorber(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-              child: SliverSafeArea(
-                top: false,
-                sliver: getAppBar(context),
-              ),
-            )
-          ];
-        },
-        body: Container(
-          color: Colors.black.withAlpha(32),
-          child: CustomScrollView(
-            slivers: <Widget>[getContent()],
+    return Container(
+      padding:
+          MediaQuery.of(context).padding.copyWith(left: 0, right: 0, bottom: 0),
+      color: Colors.white,
+      child: Scaffold(
+        body: NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return <Widget>[
+              SliverOverlapAbsorber(
+                handle:
+                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                child: SliverSafeArea(
+                  top: false,
+                  sliver: getAppBar(context),
+                ),
+              )
+            ];
+          },
+          body: Container(
+            color: Colors.black.withAlpha(32),
+            child: CustomScrollView(
+              slivers: <Widget>[getContent()],
+            ),
           ),
         ),
       ),
@@ -73,6 +79,20 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
         sliver: SliverList(
           delegate: SliverChildListDelegate(buildAudiovisualBody()),
         ));
+  }
+
+  Color getRatingColor(String score) {
+    try {
+      var d = double.parse(score);
+      if (d < 6) {
+        return Colors.redAccent;
+      } else if (d < 9) {
+        return Colors.yellowAccent;
+      }
+      return Colors.greenAccent;
+    } catch (e) {
+      return Theme.of(context).primaryColor;
+    }
   }
 
   SliverAppBar getAppBar(BuildContext context) {
@@ -106,6 +126,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                       ? new DefaultAudiovisualImage(
                           heigth: MediaQuery.of(context).size.height * 0.6)
                       : Image.network(
+                          //TODO CacheImage
                           _audiovisual.imageUrl,
                           fit: BoxFit.fill,
                           // height: MediaQuery.of(context).size.height * 0.6,
@@ -118,6 +139,17 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                     child: Container(
                       decoration: new BoxDecoration(
                         color: Colors.black.withOpacity(0.75),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 50,
+                    right: 20,
+                    child: CircleAvatar(
+                      backgroundColor: getRatingColor(_audiovisual.score),
+                      child: Text(
+                        _audiovisual?.score ?? 'N/A',
+                        style: Theme.of(context).textTheme.title,
                       ),
                     ),
                   ),
@@ -159,8 +191,15 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
       /// SINOPSIS
       // buildDivider(_audiovisual.sinopsis),
       new AudiovisualContentHorizontal(
-        label: 'Sinopsis',
+        label: 'Sinópsis',
         content: _audiovisual.sinopsis,
+      ),
+
+      /// GENERO
+      buildDivider(_audiovisual.genre?.categoria),
+      new AudiovisualContentHorizontal(
+        label: 'Género',
+        content: _audiovisual.genre?.categoria,
       ),
 
       /// PAIS
@@ -317,12 +356,9 @@ class AudiovisualContentHorizontal extends StatelessWidget {
       child: Container(
         color: Colors.white,
         child: ListTile(
-          title: Text(
-            label,
-          ),
-          subtitle: Text(
-            content != null && content.isNotEmpty ? content : '',
-          ),
+          title: Text(label, style: Theme.of(context).textTheme.title),
+          subtitle: Text(content != null && content.isNotEmpty ? content : '',
+              style: Theme.of(context).textTheme.subtitle),
         ),
       ),
     );
@@ -349,7 +385,9 @@ class AudiovisualTitle extends StatelessWidget {
           title: Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .title /*TextStyle(fontWeight: FontWeight.bold)*/,
           ),
         ),
       ),

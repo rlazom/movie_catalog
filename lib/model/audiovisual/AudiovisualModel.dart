@@ -12,6 +12,7 @@ class AudiovisualModel {
   Image image;
   Category category;
   Genre genre;
+  String score;
   String imageUrl;
   String capitulos;
   String director;
@@ -33,7 +34,8 @@ class AudiovisualModel {
       this.formato,
       Image image,
       Category category,
-      Genre genre,
+      this.score,
+      this.genre,
       this.imageUrl,
       this.capitulos,
       this.director,

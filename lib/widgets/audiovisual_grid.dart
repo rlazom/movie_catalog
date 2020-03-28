@@ -1,5 +1,5 @@
 import 'package:catalogo/providers/audiovisuales_provider.dart';
-import 'package:catalogo/widgets/audiovisual_item.dart';
+import 'package:catalogo/widgets/audiovisual_grid_item.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +32,7 @@ class _AudiovisualGridState extends State<AudiovisualGrid> {
             itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
                 value: provider.items[i], child: AudiovisualGridItem()),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 2,
                 childAspectRatio: 3 / 5,
                 crossAxisSpacing: 20,
                 mainAxisSpacing: 20),

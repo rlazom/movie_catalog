@@ -18,7 +18,7 @@ class AudiovisualGridItem extends StatelessWidget {
                 arguments: audiovisual.id);
           },
           splashColor: Colors.white,
-          child: audiovisual.imageUrl != null
+          child: audiovisual.imageUrl != null && audiovisual.imageUrl != "N/A"
               ? Image.network(
                   audiovisual.imageUrl,
                   fit: BoxFit.fill,
@@ -40,7 +40,7 @@ class AudiovisualGridItem extends StatelessWidget {
                           ),
                     onPressed: () => product.toggleFavourite(),
                     color: Theme.of(context).accentColor)),
-            title: audiovisual.imageUrl != null
+            title: audiovisual.imageUrl != null && audiovisual.imageUrl != "N/A"
                 ? Text(
                     audiovisual.title,
                     style: TextStyle(color: Colors.white, fontSize: 16),

@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AudiovisualListItem extends StatelessWidget {
+  final _types = {
+    'movie': 'Película',
+    'series': 'Serie',
+    'episode': 'Programa de TV'
+  };
+
   @override
   Widget build(BuildContext context) {
     final audiovisual =
@@ -29,6 +35,8 @@ class AudiovisualListItem extends StatelessWidget {
                 onPressed: () => product.toggleFavourite(),
                 color: Theme.of(context).accentColor)),
         title: Text(audiovisual.title,
+            style: TextStyle(color: Colors.black87, fontSize: 16)),
+        subtitle: Text('${_types[audiovisual.type]}/${audiovisual.year}',
             style: TextStyle(color: Colors.black87, fontSize: 16)),
       ),
     );

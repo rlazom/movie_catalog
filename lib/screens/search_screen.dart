@@ -19,6 +19,15 @@ class _SearchScreenState extends State<SearchScreen>
     with AutomaticKeepAliveClientMixin {
   var _isLoading = false;
   ShowOptions _showMode = ShowOptions.List;
+  final _types = [
+    //movie, series, episode
+    {'label': 'Películas', 'value': 'movie'},
+    {'label': 'Series', 'value': 'series'},
+    {'label': 'Todos', 'value': ''}
+  ];
+  String _type = '';
+  String _query = '';
+
   final appBarController = AppBarController();
 
   @override
@@ -30,12 +39,7 @@ class _SearchScreenState extends State<SearchScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final types = [
-      //movie, series, episode
-      {'label': 'Peliculas', 'value': 'movie'},
-      {'label': 'Series', 'value': 'series'},
-      {'label': 'Programas de TV', 'value': 'episode'}
-    ];
+
     final provider =
         Provider.of<AudiovisualListProvider>(context, listen: false);
     return Scaffold(
@@ -43,20 +47,42 @@ class _SearchScreenState extends State<SearchScreen>
             primary: Colors.black87,
             mainAppBar: AppBar(
               backgroundColor: Colors.black87,
+              title: GestureDetector(
+                onTap: () => appBarController.stream.add(true),
+                child: Text(
+                  _query,
+                  style:
+                      TextStyle(color: Colors.white, fontStyle: FontStyle.italic),
+                ),
+              ),
               actions: <Widget>[
                 IconButton(
                   icon: Icon(
                     FontAwesomeIcons.search,
                     color: Colors.white,
                   ),
-//                  child: Text(
-//                    'BUSCAR',
-//                    style: Theme.of(context)
-//                        .textTheme
-//                        .title
-//                        .copyWith(color: Colors.white),
-//                  ),
                   onPressed: () => appBarController.stream.add(true),
+                ),
+                PopupMenuButton(
+                  onSelected: (String selectedValue) {
+                    setState(() {
+                      _type = selectedValue;
+                    });
+                    makeSearch(provider);
+                  },
+                  initialValue: _type,
+                  tooltip: 'Filtros',
+                  color: Colors.white,
+                  icon: Icon(
+                    FontAwesomeIcons.filter,
+                    color: Colors.white,
+                  ),
+                  itemBuilder: (_) => _types
+                      .map((type) => PopupMenuItem(
+                            value: type['value'],
+                            child: Text(type['label']),
+                          ))
+                      .toList(),
                 ),
                 PopupMenuButton(
                   onSelected: (ShowOptions selectedValue) {
@@ -68,7 +94,7 @@ class _SearchScreenState extends State<SearchScreen>
                   tooltip: 'Vista',
                   color: Colors.white,
                   icon: Icon(
-                    Icons.remove_red_eye,
+                    Icons.more_vert,
                     color: Colors.white,
                   ),
                   itemBuilder: (_) => [
@@ -76,20 +102,12 @@ class _SearchScreenState extends State<SearchScreen>
                       child: Text(
                         'Mosaico',
                       ),
-                      textStyle: TextStyle(
-                          color: _showMode == ShowOptions.Grid
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).textTheme.title.color),
                       value: ShowOptions.Grid,
                     ),
                     PopupMenuItem(
                       child: Text('Lista'),
-                      textStyle: TextStyle(
-                          color: _showMode == ShowOptions.List
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).textTheme.title.color),
                       value: ShowOptions.List,
-                    )
+                    ),
                   ],
                 )
               ],
@@ -98,14 +116,8 @@ class _SearchScreenState extends State<SearchScreen>
             searchHint: 'Back to the future...',
             onChange: (query) {
               if (query.isNotEmpty) {
-                setState(() {
-                  _isLoading = true;
-                });
-                provider.search(query).then((_) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                });
+                _query = query;
+                makeSearch(provider);
               }
             }),
         body: Container(
@@ -116,6 +128,19 @@ class _SearchScreenState extends State<SearchScreen>
                       ? AudiovisualGrid()
                       : AudiovisualList()),
         ));
+  }
+
+  void makeSearch(AudiovisualListProvider provider) {
+    if (_query != null && _query.isNotEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+      provider.search(_query, type: _type).then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
   }
 
   @override
