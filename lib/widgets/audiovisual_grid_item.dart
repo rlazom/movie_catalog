@@ -38,7 +38,7 @@ class AudiovisualGridItem extends StatelessWidget {
                             Icons.favorite_border,
                             color: Colors.white,
                           ),
-                    onPressed: () => product.toggleFavourite(),
+                    onPressed: () => product.toggleFavourite(context: context),
                     color: Theme.of(context).accentColor)),
             title: audiovisual.imageUrl != null && audiovisual.imageUrl != "N/A"
                 ? Text(

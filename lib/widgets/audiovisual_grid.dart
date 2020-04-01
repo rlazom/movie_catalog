@@ -39,11 +39,7 @@ class _AudiovisualGridState extends State<AudiovisualGrid> {
           )
         : Container(
             child: Center(
-              child: Icon(
-                FontAwesomeIcons.videoSlash,
-                size: 100,
-                color: Colors.grey.withOpacity(0.20),
-              ),
+              child: Text('Presione la lupa para buscar'),
             ),
           );
   }

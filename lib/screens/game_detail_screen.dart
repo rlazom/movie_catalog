@@ -1,58 +1,58 @@
 import 'dart:ui' as prefix0;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:catalogo/data/moor_database.dart';
-import 'package:catalogo/providers/audiovisual_single_provider.dart';
+import 'package:catalogo/providers/game_single_provider.dart';
 import 'package:catalogo/widgets/default_image.dart';
 import 'package:catalogo/widgets/zoom_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:like_button/like_button.dart';
 import 'package:provider/provider.dart';
 
-class AudiovisualDetail extends StatefulWidget {
-  static const routeName = '/audiovisualDetail';
+class GameDetail extends StatefulWidget {
+  static const routeName = '/gameDetail';
 
   @override
-  _AudiovisualDetailState createState() => _AudiovisualDetailState();
+  _GameDetailState createState() => _GameDetailState();
 }
 
-class _AudiovisualDetailState extends State<AudiovisualDetail> {
+class _GameDetailState extends State<GameDetail> {
   var _isInit = true;
   var _isLoading = true;
   var _imageLoaded = false;
-  AudiovisualTableData _audiovisual;
+  GameTableData _game;
 
   @override
   void didChangeDependencies() {
     if (_isInit) {
       _isInit = false;
-      AudiovisualProvider audiovisualProvider =
-      Provider.of<AudiovisualProvider>(context, listen: false);
-      audiovisualProvider.findMyData(context).then((value) {
+      GameProvider gameProvider =
+          Provider.of<GameProvider>(context, listen: false);
+      gameProvider.findMyData(context).then((value) {
         if (mounted) {
           if (value == null) {
             showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: Text('No Internet!!!'),
-                  actions: <Widget>[
-                    FlatButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Aceptar'),
-                      textColor: Colors.red,
-                    )
-                  ],
-                ));
+                      title: Text('No Internet!!!'),
+                      actions: <Widget>[
+                        FlatButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Aceptar'),
+                          textColor: Colors.red,
+                        )
+                      ],
+                    ));
           } else
             setState(() {
               _isLoading = false;
-              _audiovisual = value;
-
+              _game = value;
             });
         }
       });
@@ -101,7 +101,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     return SliverPadding(
         padding: const EdgeInsets.all(8.0),
         sliver: SliverList(
-          delegate: SliverChildListDelegate(buildAudiovisualBody()),
+          delegate: SliverChildListDelegate(buildGameBody()),
         ));
   }
 
@@ -141,18 +141,18 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                 duration: Duration(milliseconds: 150),
                 opacity: top <= umbral ? 1.0 : 0.0,
                 child: Text(
-                  _audiovisual.titulo,
+                  _game.titulo,
                   maxLines: 1,
                   style: TextStyle(color: Colors.white),
                 )),
             background: Stack(alignment: AlignmentDirectional.center,
                 // fit: StackFit.loose,
                 children: <Widget>[
-                  _audiovisual.image == null || !_imageLoaded
+                  _game.image == null || !_imageLoaded
                       ? new DefaultAudiovisualImage(
                           heigth: MediaQuery.of(context).size.height * 0.6)
                       : CachedNetworkImage(
-                          imageUrl: _audiovisual.image,
+                          imageUrl: 'https://images.igdb.com/igdb/image/upload/t_screenshot_med/${_game.image}.jpg',
                           placeholder: (_, __) => SizedBox(
                             child: CircularProgressIndicator(),
                           ),
@@ -175,13 +175,13 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                     child: Row(
                       children: <Widget>[
                         CircleAvatar(
-                          backgroundColor: getRatingColor(_audiovisual.score),
+                          backgroundColor: getRatingColor(_game.score),
                           child: Text(
-                            _audiovisual.score ?? '-',
+                            _game.score ?? '-',
                             style: Theme.of(context).textTheme.title,
                           ),
                         ),
-                        Consumer<AudiovisualProvider>(
+                        Consumer<GameProvider>(
                           builder: (ctx, product, child) => LikeButton(
                             likeBuilder: (bool isLiked) => Icon(
                               product.isFavourite
@@ -192,7 +192,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                                   : Colors.white,
                             ),
                             onTap: (isFav) =>
-                                product.toggleFavourite(context: context, audiovisual: _audiovisual),
+                                product.toggleFavourite(context: context),
                           ),
                         )
                       ],
@@ -204,7 +204,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         Text(
-                          _audiovisual.titulo,
+                          _game.titulo,
                           maxLines: 3,
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.white, fontSize: 26),
@@ -215,17 +215,17 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                               : FontAwesomeIcons.cloudDownloadAlt),
                           color: Colors.white,
                           iconSize: 50,
-                          onPressed: _audiovisual.image != null &&
-                                  _audiovisual.image.isNotEmpty
-                              ? () {
-                                  if (!_imageLoaded) {
-                                    setState(() {
-                                      _imageLoaded = true;
-                                    });
-                                  } else
-                                    return showAudiovisualImage(context);
-                                }
-                              : null,
+                          onPressed:
+                              _game.image != null && _game.image.isNotEmpty
+                                  ? () {
+                                      if (!_imageLoaded) {
+                                        setState(() {
+                                          _imageLoaded = true;
+                                        });
+                                      } else
+                                        return showGameImage(context);
+                                    }
+                                  : null,
                         ),
                       ],
                     ),
@@ -237,79 +237,55 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     );
   }
 
-  buildAudiovisualBody() {
+  buildGameBody() {
     var children = [
-      // new AudiovisualTitle(
-      //     title: _audiovisual.titulo, value: _audiovisual.titulo),
+      // new GameTitle(
+      //     title: _game.titulo, value: _game.titulo),
+
+      /// Puntuacion
+      buildDivider(_game.score),
+      new GameContentHorizontal(
+        label: 'Valoracion',
+        content: _game.score,
+      ),
 
       /// SINOPSIS
-      // buildDivider(_audiovisual.sinopsis),
-      new AudiovisualContentHorizontal(
+      // buildDivider(_game.sinopsis),
+      new GameContentHorizontal(
         label: 'Sinópsis',
-        content: _audiovisual.sinopsis,
+        content: _game.sinopsis,
+      ),
+
+      /// Empresa
+      buildDivider(_game.empresa),
+      new GameContentHorizontal(
+        label: 'Franquisia',
+        content: _game.empresa,
       ),
 
       /// GENERO
-      buildDivider(_audiovisual.genre),
-      new AudiovisualContentHorizontal(
+      buildDivider(_game.genre),
+      new GameContentHorizontal(
         label: 'Género',
-        content: _audiovisual.genre,
+        content: _game.genre,
       ),
 
-      /// Puntuacion
-      buildDivider(_audiovisual.score),
-      new AudiovisualContentHorizontal(
-        label: 'Valoracion',
-        content: _audiovisual.score,
+      /// PLATAFORMAS
+      buildDivider(_game.plataformas),
+      new GameContentHorizontal(
+        label: 'Plataformas',
+        content: _game.plataformas,
       ),
 
-      /// PAIS
-      buildDivider(_audiovisual.pais),
-      new AudiovisualContentHorizontal(
-        label: 'Pais',
-        content: _audiovisual.pais,
+      /// Fecha Lanzamiento
+      buildDivider(_game.fechaLanzamiento?.toIso8601String()),
+
+      new GameContentHorizontal(
+        label: 'Fecha de Lanzamiento',
+        content: _game.fechaLanzamiento != null
+            ? DateFormat.yM().format(_game.fechaLanzamiento)
+            : '-',
       ),
-
-      /// CAPITULOS
-      buildDivider(_audiovisual.capitulos),
-      new AudiovisualContentHorizontal(
-        label: 'Capitulos',
-        content: _audiovisual.capitulos,
-      ),
-
-      /// DIRECTOR
-      buildDivider(_audiovisual.director),
-      new AudiovisualContentHorizontal(
-        label: 'Director',
-        content: _audiovisual.director,
-      ),
-
-      /// AÑO
-      buildDivider(_audiovisual.anno),
-      new AudiovisualContentHorizontal(
-        label: 'Año',
-        content: _audiovisual.anno,
-      ),
-
-      /// PRODUCTORA
-      buildDivider(_audiovisual.productora),
-      new AudiovisualContentHorizontal(
-          label: 'Productora', content: _audiovisual.productora),
-
-      /// DURACION
-      buildDivider(_audiovisual.duracion),
-      new AudiovisualContentHorizontal(
-          label: 'Duración', content: _audiovisual.duracion),
-
-      ///
-      buildDivider(_audiovisual.idioma),
-      new AudiovisualContentHorizontal(
-          label: 'Idioma', content: _audiovisual.idioma),
-
-      ///
-      buildDivider(_audiovisual.reparto),
-      new AudiovisualContentHorizontal(
-          label: 'Reparto', content: _audiovisual.reparto),
     ];
     /* ) */;
     return <Widget>[
@@ -342,21 +318,21 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     );
   }
 
-  showAudiovisualImage(BuildContext context) {
+  showGameImage(BuildContext context) {
     Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => ZoomImage(
-                  imageUrl: _audiovisual.image,
+                  imageUrl: _game.image,
                 )));
   }
 }
 
-class AudiovisualContentHorizontal extends StatelessWidget {
+class GameContentHorizontal extends StatelessWidget {
   final String label;
   final String content;
 
-  const AudiovisualContentHorizontal({Key key, this.label, this.content})
+  const GameContentHorizontal({Key key, this.label, this.content})
       : super(key: key);
 
   @override
@@ -375,8 +351,8 @@ class AudiovisualContentHorizontal extends StatelessWidget {
   }
 }
 
-class AudiovisualTitle extends StatelessWidget {
-  const AudiovisualTitle({
+class GameTitle extends StatelessWidget {
+  const GameTitle({
     Key key,
     @required this.title,
     @required this.value,

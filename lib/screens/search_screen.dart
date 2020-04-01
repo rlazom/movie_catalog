@@ -1,10 +1,11 @@
 import 'package:catalogo/providers/audiovisuales_provider.dart';
 import 'package:catalogo/widgets/audiovisual_grid.dart';
 import 'package:catalogo/widgets/audiovisual_list.dart';
+import 'package:catalogo/widgets/hex_color.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:simple_search_bar/simple_search_bar.dart';
 
 enum ShowOptions { Grid, List }
 
@@ -28,11 +29,12 @@ class _SearchScreenState extends State<SearchScreen>
   String _type = '';
   String _query = '';
 
-  final appBarController = AppBarController();
+  final _controller = TextEditingController();
+  final _searchFocusNode = FocusNode();
 
   @override
   void dispose() {
-    appBarController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -43,90 +45,84 @@ class _SearchScreenState extends State<SearchScreen>
     final provider =
         Provider.of<AudiovisualListProvider>(context, listen: false);
     return Scaffold(
-        appBar: SearchAppBar(
-            primary: Colors.black87,
-            mainAppBar: AppBar(
-              backgroundColor: Colors.black87,
-              title: GestureDetector(
-                onTap: () => appBarController.stream.add(true),
-                child: Text(
-                  _query,
-                  style:
-                      TextStyle(color: Colors.white, fontStyle: FontStyle.italic),
-                ),
-              ),
-              actions: <Widget>[
-                IconButton(
-                  icon: Icon(
-                    FontAwesomeIcons.search,
-                    color: Colors.white,
-                  ),
-                  onPressed: () => appBarController.stream.add(true),
-                ),
-                PopupMenuButton(
-                  onSelected: (String selectedValue) {
-                    setState(() {
-                      _type = selectedValue;
-                    });
-                    makeSearch(provider);
-                  },
-                  initialValue: _type,
-                  tooltip: 'Filtros',
-                  color: Colors.white,
-                  icon: Icon(
-                    FontAwesomeIcons.filter,
-                    color: Colors.white,
-                  ),
-                  itemBuilder: (_) => _types
-                      .map((type) => PopupMenuItem(
-                            value: type['value'],
-                            child: Text(type['label']),
-                          ))
-                      .toList(),
-                ),
-                PopupMenuButton(
-                  onSelected: (ShowOptions selectedValue) {
-                    setState(() {
-                      _showMode = selectedValue;
-                    });
-                  },
-                  initialValue: _showMode,
-                  tooltip: 'Vista',
-                  color: Colors.white,
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Colors.white,
-                  ),
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                      child: Text(
-                        'Mosaico',
+        body: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: CupertinoTextField(
+                      controller: _controller,
+                      onChanged: (query) {
+                        if (query.isNotEmpty) {
+                          _query = query;
+                          makeSearch(provider);
+                        }
+                      },
+                      focusNode: _searchFocusNode,
+                      padding: EdgeInsets.all(15),
+                      placeholder: 'ej: Back to the Future...',
+                      placeholderStyle:
+                      TextStyle(color: Colors.white30, fontStyle: FontStyle.italic),
+                      suffix: Visibility(
+                        visible: _controller.text.isNotEmpty,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                          ),
+                          color: Theme.of(context).primaryColor,
+                          onPressed: () {
+                            _controller.clear();
+                            FocusScope.of(context).requestFocus(FocusNode());
+                            setState(() {
+                              _query = '';
+                            });
+                          },
+                        ),
                       ),
-                      value: ShowOptions.Grid,
+                      style: ThemeData.dark().textTheme.title,
+                      maxLength: 50,
+                      decoration: BoxDecoration(
+                          color: HexColor('#252525'),
+                          borderRadius: BorderRadiusDirectional.circular(20)),
                     ),
-                    PopupMenuItem(
-                      child: Text('Lista'),
-                      value: ShowOptions.List,
+                  ),
+                  PopupMenuButton(
+                    onSelected: (String selectedValue) {
+                      setState(() {
+                        _type = selectedValue;
+                      });
+                      makeSearch(provider);
+                    },
+                    initialValue: _type,
+                    tooltip: 'Filtros',
+                    color: Colors.white,
+                    icon: Icon(
+                      FontAwesomeIcons.filter,
+                      color: HexColor('#252525'),
                     ),
-                  ],
-                )
-              ],
+                    itemBuilder: (_) => _types
+                        .map((type) => PopupMenuItem(
+                      value: type['value'],
+                      child: Text(type['label']),
+                    ))
+                        .toList(),
+                  ),
+                ],
+              ),
             ),
-            appBarController: appBarController,
-            searchHint: 'Back to the future...',
-            onChange: (query) {
-              if (query.isNotEmpty) {
-                _query = query;
-                makeSearch(provider);
-              }
-            }),
-        body: Container(
-          child: _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : Consumer<AudiovisualListProvider>(
-                  builder: (ctx, prov, child) => _showMode == ShowOptions.Grid
-                      ? AudiovisualGrid()
-                      : AudiovisualList()),
+            Expanded(
+              child: Container(
+                child: _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : Consumer<AudiovisualListProvider>(
+                        builder: (ctx, prov, child) => _showMode == ShowOptions.Grid
+                            ? AudiovisualGrid()
+                            : AudiovisualList()),
+              ),
+            ),
+          ],
         ));
   }
 
@@ -135,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen>
       setState(() {
         _isLoading = true;
       });
-      provider.search(_query, type: _type).then((_) {
+      provider.search(context, _query, type: _type).then((_) {
         setState(() {
           _isLoading = false;
         });

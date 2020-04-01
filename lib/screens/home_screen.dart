@@ -1,3 +1,4 @@
+import 'package:catalogo/screens/search_games_screen.dart';
 import 'package:catalogo/screens/search_screen.dart';
 import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +15,12 @@ class _ImbdScreenState extends State<ImbdScreen>
     with SingleTickerProviderStateMixin {
   final _pages = <Widget>[
     Center(
-      child: Text('HOME'),
+      child: Text('Desde Back4App encuestar diariamente alguna api para comocer las populares'),
     ),
     SearchScreen(),
+    SearchGameScreen(),
     Center(
-      child: Text('ACCOUNT'),
+      child: Text('User'),
     ),
   ];
   TabController _controller;
@@ -44,13 +46,15 @@ class _ImbdScreenState extends State<ImbdScreen>
     final fancy = FancyBottomNavigation(
       tabs: [
         TabData(iconData: FontAwesomeIcons.trophy, title: "Popular"),
-        TabData(iconData: FontAwesomeIcons.search, title: "Search"),
-        TabData(iconData: FontAwesomeIcons.cog, title: "Settings")
+        TabData(iconData: FontAwesomeIcons.film, title: "Media"),
+        TabData(iconData: FontAwesomeIcons.gamepad, title: "Juegos"),
+        TabData(iconData: FontAwesomeIcons.userAlt, title: "Me")
       ],
       onTabChangedListener: _onTap,
       barBackgroundColor: Colors.black87,
       textColor: Colors.white,
       initialSelection: 1,
+      circleColor: Colors.white,
       activeIconColor: Colors.black87,
     );
 
@@ -59,6 +63,7 @@ class _ImbdScreenState extends State<ImbdScreen>
         margin: MediaQuery.of(context).padding,
         child: TabBarView(
           children: _pages,
+          physics: NeverScrollableScrollPhysics(),
           controller: _controller,
         ),
       ),
