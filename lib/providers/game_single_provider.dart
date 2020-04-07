@@ -1,3 +1,4 @@
+import 'package:catalogo/data/moor_database.dart';
 import 'package:catalogo/repository/repository_games.dart';
 import 'package:catalogo/repository/repository_movie.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +14,10 @@ class GameProvider with ChangeNotifier {
   GameProvider({this.id, this.title, this.platforms, this.year, this.imageUrl,
     this.isFavourite});
 
-  Future<bool> toggleFavourite({@required BuildContext context}) async {
+  Future<bool> toggleFavourite({@required BuildContext context, GameTableData game}) async {
+    isFavourite = !isFavourite;
     final _repository = GamesRepository(context);
-    isFavourite = await _repository.toogleFavorite(id, !isFavourite);
+    _repository.db.updateGame(game.copyWith(isFavourite: isFavourite));
     notifyListeners();
     return isFavourite;
   }

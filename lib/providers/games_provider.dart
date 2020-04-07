@@ -1,15 +1,22 @@
+import 'package:catalogo/data/moor_database.dart';
 import 'package:catalogo/repository/repository_games.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'game_single_provider.dart';
 
 class GameListProvider with ChangeNotifier {
-
   List<GameProvider> _items = [];
 
   List<GameProvider> get items {
     return [..._items];
+  }
+
+  List<GameProvider> _favs = [];
+
+  List<GameProvider> get favs {
+    return [..._favs];
   }
 
   GameProvider findById(String id) {
@@ -25,10 +32,24 @@ class GameListProvider with ChangeNotifier {
     } else
       showDialog(
           context: context,
-          builder: (context) =>
-              AlertDialog(
+          builder: (context) => AlertDialog(
                 title: Text('No Conection!!!'),
               ));
+    notifyListeners();
+  }
+
+  Future loadFavorites(BuildContext context) async {
+    final GamesRepository _repository = GamesRepository(context);
+    final List<GameTableData> dbList = await _repository.getFavourites();
+    _favs = dbList
+        .map((game) => GameProvider(
+            title: game.titulo,
+            imageUrl: game.image,
+            platforms: game.plataformas,
+            year: DateFormat.yMMM().format(game.fechaLanzamiento),
+            id: game.id,
+            isFavourite: game.isFavourite))
+        .toList();
     notifyListeners();
   }
 
@@ -78,9 +99,7 @@ class GameListProvider with ChangeNotifier {
     ];
     for (var a in body) {
       var game = new GameProvider(
-          title: a['name'],
-          id: a['id'].toString(),
-          isFavourite: false);
+          title: a['name'], id: a['id'].toString(), isFavourite: false);
       result.add(game);
     }
     _items = result;

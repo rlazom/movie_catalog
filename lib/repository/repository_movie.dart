@@ -1,4 +1,5 @@
 import 'package:catalogo/data/moor_database.dart';
+import 'package:catalogo/providers/util.dart';
 import 'package:catalogo/rest/resolver.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -11,12 +12,12 @@ class MovieRepository {
     db = Provider.of<MyDatabase>(context, listen: false);
   }
 
-  Future search(String query, {String type}) async {
-    return await _resolver.searchMovie(query, type: type);
+  Future<SearchMovieResponse> search(String query, {String type, int page}) async {
+    return await _resolver.searchMovie(query, type: type, page: page);
   }
 
-  Future toogleFavorite(String id, bool newValue) async {
-    return db.toogleAudiovisualFavourite(id, newValue);
+  Future getFavourites(String type) async {
+    return db.getFavouritesAudiovisual(type);
   }
 
   Future getById(String id) async {

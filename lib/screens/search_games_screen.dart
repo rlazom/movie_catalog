@@ -1,4 +1,5 @@
 import 'package:catalogo/widgets/games_list.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../providers/games_provider.dart';
 import '../widgets/hex_color.dart';
@@ -40,8 +41,11 @@ class _SearchGameScreenState extends State<SearchGameScreen>
     return Scaffold(
         body: Column(
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(20),
+        Card(
+          margin: const EdgeInsets.all(20),
+          color: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          elevation: 10,
           child: CupertinoTextField(
             controller: _controller,
             onChanged: (query) {
@@ -50,11 +54,19 @@ class _SearchGameScreenState extends State<SearchGameScreen>
                 makeSearch(provider);
               }
             },
-            padding: EdgeInsets.all(15),
+            padding: const EdgeInsets.all(8),
             placeholder: 'ej: The Witcher 3...',
             focusNode: _searchFocusNode,
+            prefix: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.search,
+                color: Colors.black87,
+              ),
+            ),
+            prefixMode: OverlayVisibilityMode.notEditing,
             placeholderStyle:
-                TextStyle(color: Colors.white30, fontStyle: FontStyle.italic),
+                TextStyle(color: Colors.black38, fontStyle: FontStyle.italic),
             suffix: Visibility(
               visible: _controller.text.isNotEmpty,
               child: IconButton(
@@ -71,10 +83,10 @@ class _SearchGameScreenState extends State<SearchGameScreen>
                 },
               ),
             ),
-            style: ThemeData.dark().textTheme.title,
+            style: ThemeData.light().textTheme.title,
             maxLength: 50,
             decoration: BoxDecoration(
-                color: HexColor('#252525'),
+                color: HexColor('#000'),
                 borderRadius: BorderRadiusDirectional.circular(20)),
           ),
         ),

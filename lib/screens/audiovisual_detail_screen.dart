@@ -6,6 +6,7 @@ import 'package:catalogo/widgets/default_image.dart';
 import 'package:catalogo/widgets/zoom_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:like_button/like_button.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,9 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
   @override
   void didChangeDependencies() {
     if (_isInit) {
+      FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
+        FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+      });
       _isInit = false;
       AudiovisualProvider audiovisualProvider =
       Provider.of<AudiovisualProvider>(context, listen: false);
@@ -314,7 +318,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     /* ) */;
     return <Widget>[
       Card(
-        margin: EdgeInsets.all(10),
+        margin: const EdgeInsets.all(10),
         elevation: 5,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),

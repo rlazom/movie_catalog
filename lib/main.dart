@@ -1,3 +1,6 @@
+import 'package:catalogo/screens/favs_screen.dart';
+import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
+
 import 'data/moor_database.dart';
 import 'screens/audiovisual_detail_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +18,11 @@ class HomeImbd extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+//    if (useWhiteForeground(Colors.green[400])) {
+//      FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
+//    } else {
+//      FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+//    }
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: AudiovisualListProvider()),
@@ -33,7 +41,12 @@ class HomeImbd extends StatelessWidget {
             fontFamily: 'Dosis'),
         themeMode: ThemeMode.dark,
         home: ImbdScreen(),
-        routes: {AudiovisualDetail.routeName: (ctx) => AudiovisualDetail()},
+        routes: {
+          AudiovisualDetail.routeName: (ctx) => AudiovisualDetail(),
+          FavouriteScren.routeNameFilms: (ctx) => FavouriteScren(param: FAVOURITE_THINGS.FILMS,),
+          FavouriteScren.routeNameGames: (ctx) => FavouriteScren(param: FAVOURITE_THINGS.GAMES,),
+          FavouriteScren.routeNameSeries: (ctx) => FavouriteScren(param: FAVOURITE_THINGS.SERIES,),
+        },
       ),
     );
   }

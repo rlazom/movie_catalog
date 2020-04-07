@@ -54,7 +54,7 @@ class AudiovisualGridItem extends StatelessWidget {
     Widget back = Container(
       color: Colors.black,
       width: double.infinity,
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

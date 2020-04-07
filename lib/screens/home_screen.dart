@@ -3,8 +3,11 @@ import 'package:catalogo/screens/search_screen.dart';
 import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+
+import 'user_screen.dart';
 
 class ImbdScreen extends StatefulWidget {
   @override
@@ -14,21 +17,24 @@ class ImbdScreen extends StatefulWidget {
 class _ImbdScreenState extends State<ImbdScreen>
     with SingleTickerProviderStateMixin {
   final _pages = <Widget>[
-    Center(
-      child: Text('Desde Back4App encuestar diariamente alguna api para comocer las populares'),
-    ),
+//    Center(
+//      child: Text(
+//          'Desde Back4App encuestar diariamente alguna api para comocer las populares'),
+//    ),
     SearchScreen(),
     SearchGameScreen(),
-    Center(
-      child: Text('User'),
-    ),
+    UserScreen(),
   ];
   TabController _controller;
 
   @override
   void initState() {
     _controller =
-        TabController(length: _pages.length, vsync: this, initialIndex: 1);
+        TabController(length: _pages.length, vsync: this, initialIndex: 0);
+    _controller.addListener(() => FocusScope.of(context).requestFocus(FocusNode()));
+    FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
+      FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+    });
     super.initState();
   }
 
@@ -45,7 +51,7 @@ class _ImbdScreenState extends State<ImbdScreen>
     };
     final fancy = FancyBottomNavigation(
       tabs: [
-        TabData(iconData: FontAwesomeIcons.trophy, title: "Popular"),
+//        TabData(iconData: FontAwesomeIcons.trophy, title: "Popular"),
         TabData(iconData: FontAwesomeIcons.film, title: "Media"),
         TabData(iconData: FontAwesomeIcons.gamepad, title: "Juegos"),
         TabData(iconData: FontAwesomeIcons.userAlt, title: "Me")
@@ -53,7 +59,7 @@ class _ImbdScreenState extends State<ImbdScreen>
       onTabChangedListener: _onTap,
       barBackgroundColor: Colors.black87,
       textColor: Colors.white,
-      initialSelection: 1,
+      initialSelection: 0,
       circleColor: Colors.white,
       activeIconColor: Colors.black87,
     );

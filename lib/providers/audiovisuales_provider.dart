@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:catalogo/data/moor_database.dart';
 import 'package:flutter/material.dart';
 
 import '../providers/audiovisual_single_provider.dart';
@@ -12,6 +13,9 @@ class AudiovisualListProvider with ChangeNotifier {
   final String category;
   final String genre;
   final String type;
+  bool _hasMore;
+  int _totalSearchResult;
+  int _actualPage = 1;
 
   AudiovisualListProvider({this.type, this.category, this.genre});
 
@@ -21,6 +25,14 @@ class AudiovisualListProvider with ChangeNotifier {
     return [..._items];
   }
 
+  List<AudiovisualProvider> _favs = [];
+
+  List<AudiovisualProvider> get favs {
+    return [..._favs];
+  }
+
+  bool get hasMore => _hasMore;
+
   AudiovisualProvider findById(String id) {
     return _items.firstWhere((av) => av.id == id);
   }
@@ -28,16 +40,58 @@ class AudiovisualListProvider with ChangeNotifier {
   Future search(BuildContext context, String query, {String type}) async {
 //    return search2(query);
     final MovieRepository _repository = MovieRepository(context);
-    final result = await _repository.search(query, type: type);
+    final result = await _repository.search(query, type: type, page: _actualPage);
+    _actualPage = 1;
     if (result != null) {
-      _items = result;
-    } else
+      _items = result.result;
+      _totalSearchResult = result.totalResult;
+      _hasMore = (10 * _actualPage) < _totalSearchResult;
+    } else {
+      _totalSearchResult = 0;
+      _hasMore = false;
       showDialog(
           context: context,
-          builder: (context) =>
-              AlertDialog(
-                title: Text('No Conection!!!'),
-              ));
+          builder: (context) => AlertDialog(
+            title: Text('No Conection!!!'),
+          ));
+    }
+
+    notifyListeners();
+  }
+
+  Future fetchMore(BuildContext context, String query, {String type}) async {
+    final MovieRepository _repository = MovieRepository(context);
+    _actualPage++;
+    final result = await _repository.search(query, type: type, page: _actualPage);
+    if (result != null) {
+      _items.addAll(result.result);
+      _hasMore = 10 * _actualPage < _totalSearchResult;
+    } else {
+//      _totalSearchResult = 0;
+      _hasMore = false;
+//      showDialog(
+//          context: context,
+//          builder: (context) => AlertDialog(
+//            title: Text('No Conection!!!'),
+//          ));
+    }
+    notifyListeners();
+  }
+
+  Future loadFavorites(BuildContext context, String type) async {
+    final MovieRepository _repository = MovieRepository(context);
+    final List<AudiovisualTableData> dbList =
+        await _repository.getFavourites(type);
+    _favs = dbList
+        .map((av) => AudiovisualProvider(
+            type: type,
+            title: av.titulo,
+            imageUrl: av.image,
+            id: av.id,
+            image: av.image,
+            isFavourite: av.isFavourite,
+            year: av.anno))
+        .toList();
     notifyListeners();
   }
 
@@ -51,7 +105,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt0332280",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BMTk3OTM5Njg5M15BMl5BanBnXkFtZTYwMzA0ODI3._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BMTk3OTM5Njg5M15BMl5BanBnXkFtZTYwMzA0ODI3._V1_SX300.jpg"
         },
         {
           "Title": "The Notebook",
@@ -59,7 +113,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt2324384",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BMjU1MjYzOTc4NF5BMl5BanBnXkFtZTgwMjEyNTA0MjE@._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BMjU1MjYzOTc4NF5BMl5BanBnXkFtZTgwMjEyNTA0MjE@._V1_SX300.jpg"
         },
         {
           "Title": "Sara's Notebook",
@@ -67,7 +121,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt6599742",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BNzlkNDc0MTQtYzU3NS00ZTdlLTlkOWMtZTI4OWUxYTNiZDM4XkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BNzlkNDc0MTQtYzU3NS00ZTdlLTlkOWMtZTI4OWUxYTNiZDM4XkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg"
         },
         {
           "Title": "Notebook",
@@ -75,7 +129,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt9105014",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BMTE2N2M3NjEtODhiNy00ZGIwLWI0NzUtYWViN2NhNjhiNjc1XkEyXkFqcGdeQXVyNjE1OTQ0NjA@._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BMTE2N2M3NjEtODhiNy00ZGIwLWI0NzUtYWViN2NhNjhiNjc1XkEyXkFqcGdeQXVyNjE1OTQ0NjA@._V1_SX300.jpg"
         },
         {
           "Title": "Notebook on Cities and Clothes",
@@ -83,7 +137,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt0096852",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BMTY4MzQ0NDQ2Ml5BMl5BanBnXkFtZTYwNDA3MTg5._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BMTY4MzQ0NDQ2Ml5BMl5BanBnXkFtZTYwNDA3MTg5._V1_SX300.jpg"
         },
         {
           "Title": "Notebook",
@@ -91,7 +145,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt0924260",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BODcwMzYxMDQtZGVlOS00OGI5LWE1ODAtNmJjZjIyOGFmMWU5XkEyXkFqcGdeQXVyMjkxNzQ1NDI@._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BODcwMzYxMDQtZGVlOS00OGI5LWE1ODAtNmJjZjIyOGFmMWU5XkEyXkFqcGdeQXVyMjkxNzQ1NDI@._V1_SX300.jpg"
         },
         {
           "Title": "A Wanderer's Notebook",
@@ -99,7 +153,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt0056081",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BNTAwZjdkM2EtNzE5Zi00YTJjLWI1NjUtZWFjYTg4YzI4MWMyXkEyXkFqcGdeQXVyNjc0MzE1MDI@._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BNTAwZjdkM2EtNzE5Zi00YTJjLWI1NjUtZWFjYTg4YzI4MWMyXkEyXkFqcGdeQXVyNjc0MzE1MDI@._V1_SX300.jpg"
         },
         {
           "Title": "Notebook",
@@ -107,7 +161,7 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt0305908",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BZjJiMDgxMzItOTUyZC00NWE5LWFkNmMtMTNhY2JiOWNmOGRlL2ltYWdlXkEyXkFqcGdeQXVyMjYxMzY2NDk@._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BZjJiMDgxMzItOTUyZC00NWE5LWFkNmMtMTNhY2JiOWNmOGRlL2ltYWdlXkEyXkFqcGdeQXVyMjYxMzY2NDk@._V1_SX300.jpg"
         },
         {
           "Title": "From the Notebook of...",
@@ -115,11 +169,11 @@ class AudiovisualListProvider with ChangeNotifier {
           "imdbID": "tt0297901",
           "Type": "movie",
           "Poster":
-          "https://m.media-amazon.com/images/M/MV5BOGU4ZGMxM2MtZTc3OS00Y2FmLWE5ZDAtYWJjZGM0YjE0OTk2XkEyXkFqcGdeQXVyNzg5OTk2OA@@._V1_SX300.jpg"
+              "https://m.media-amazon.com/images/M/MV5BOGU4ZGMxM2MtZTc3OS00Y2FmLWE5ZDAtYWJjZGM0YjE0OTk2XkEyXkFqcGdeQXVyNzg5OTk2OA@@._V1_SX300.jpg"
         },
         {
           "Title":
-          "The Director's Notebook: The Cinematic Sleight of Hand of Christopher Nolan",
+              "The Director's Notebook: The Cinematic Sleight of Hand of Christopher Nolan",
           "Year": "2007",
           "imdbID": "tt1035445",
           "Type": "movie",

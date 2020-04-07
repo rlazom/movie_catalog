@@ -31,6 +31,8 @@ class AudiovisualProvider with ChangeNotifier {
 
   Future findMyData(BuildContext context) async {
     final _repository = MovieRepository(context);
-    return await _repository.getById(id);
+    var result = await _repository.getById(id);
+    isFavourite = result?.isFavourite;
+    return result;
   }
 }

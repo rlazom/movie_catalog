@@ -46,88 +46,103 @@ class _SearchScreenState extends State<SearchScreen>
         Provider.of<AudiovisualListProvider>(context, listen: false);
     return Scaffold(
         body: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: CupertinoTextField(
-                      controller: _controller,
-                      onChanged: (query) {
-                        if (query.isNotEmpty) {
-                          _query = query;
-                          makeSearch(provider);
-                        }
-                      },
-                      focusNode: _searchFocusNode,
-                      padding: EdgeInsets.all(15),
-                      placeholder: 'ej: Back to the Future...',
-                      placeholderStyle:
-                      TextStyle(color: Colors.white30, fontStyle: FontStyle.italic),
-                      suffix: Visibility(
-                        visible: _controller.text.isNotEmpty,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.clear,
-                          ),
-                          color: Theme.of(context).primaryColor,
-                          onPressed: () {
-                            _controller.clear();
-                            FocusScope.of(context).requestFocus(FocusNode());
-                            setState(() {
-                              _query = '';
-                            });
-                          },
-                        ),
-                      ),
-                      style: ThemeData.dark().textTheme.title,
-                      maxLength: 50,
-                      decoration: BoxDecoration(
-                          color: HexColor('#252525'),
-                          borderRadius: BorderRadiusDirectional.circular(20)),
-                    ),
-                  ),
-                  PopupMenuButton(
-                    onSelected: (String selectedValue) {
-                      setState(() {
-                        _type = selectedValue;
-                      });
+      children: <Widget>[
+        Card(
+          margin: const EdgeInsets.all(20),
+          color: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          elevation: 10,
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: CupertinoTextField(
+                  controller: _controller,
+                  onChanged: (query) {
+                    if (query.isNotEmpty) {
+                      _query = query;
                       makeSearch(provider);
-                    },
-                    initialValue: _type,
-                    tooltip: 'Filtros',
-                    color: Colors.white,
-                    icon: Icon(
-                      FontAwesomeIcons.filter,
-                      color: HexColor('#252525'),
+                    }
+                  },
+                  focusNode: _searchFocusNode,
+//                  padding: const EdgeInsets.all(15),
+                  placeholder: 'ej: Back to the Future...',
+                  placeholderStyle: TextStyle(
+                      color: Colors.black38, fontStyle: FontStyle.italic),
+                  prefix: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.search,
+                      color: Colors.black87,
                     ),
-                    itemBuilder: (_) => _types
-                        .map((type) => PopupMenuItem(
-                      value: type['value'],
-                      child: Text(type['label']),
-                    ))
-                        .toList(),
                   ),
-                ],
+                  prefixMode: OverlayVisibilityMode.notEditing,
+                  suffix: Visibility(
+                    visible: _controller.text.isNotEmpty,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: Colors.black87,
+                      ),
+                      color: Theme.of(context).primaryColor,
+                      onPressed: () {
+                        _controller.clear();
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        setState(() {
+                          _query = '';
+                        });
+                      },
+                    ),
+                  ),
+                  style: ThemeData.dark().textTheme.title.copyWith(color: Colors.black87),
+//                  cursorColor: Colors.red,
+                  maxLength: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent, //HexColor('#252525'),
+//                    borderRadius: BorderRadiusDirectional.circular(10),
+                  ),
+                ),
               ),
-            ),
-            Expanded(
-              child: Container(
-                child: _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : Consumer<AudiovisualListProvider>(
-                        builder: (ctx, prov, child) => _showMode == ShowOptions.Grid
-                            ? AudiovisualGrid()
-                            : AudiovisualList()),
+              PopupMenuButton(
+                onSelected: (String selectedValue) {
+                  setState(() {
+                    _type = selectedValue;
+                  });
+                  makeSearch(provider);
+                },
+                initialValue: _type,
+                tooltip: 'Filtros',
+                color: Colors.white,
+                icon: Icon(
+                  FontAwesomeIcons.filter,
+                  color: _type.isEmpty ? HexColor('#252525') : Theme.of(context).primaryColor,
+                  size: 18,
+                ),
+                itemBuilder: (_) => _types
+                    .map((type) => PopupMenuItem(
+                          value: type['value'],
+                          child: Text(type['label']),
+                        ))
+                    .toList(),
               ),
-            ),
-          ],
-        ));
+            ],
+          ),
+        ),
+        Expanded(
+          child: Container(
+            child: _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Consumer<AudiovisualListProvider>(
+                    builder: (ctx, prov, child) => _showMode == ShowOptions.Grid
+                        ? AudiovisualGrid()
+                        : AudiovisualList()),
+          ),
+        ),
+      ],
+    ));
   }
 
   void makeSearch(AudiovisualListProvider provider) {
-    if (_query != null && _query.isNotEmpty) {
+    if (_query != null && _query.isNotEmpty && _query.length > 2) {
       setState(() {
         _isLoading = true;
       });

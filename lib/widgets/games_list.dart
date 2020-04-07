@@ -6,6 +6,10 @@ import 'package:provider/provider.dart';
 import 'games_list_item.dart';
 
 class GameList extends StatefulWidget {
+  final bool isShowingFavs;
+
+  const GameList({Key key, this.isShowingFavs}) : super(key: key);
+
   @override
   _GameListState createState() => _GameListState();
 }
@@ -26,21 +30,37 @@ class _GameListState extends State<GameList> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<GameListProvider>(context, listen: false);
+    if (widget.isShowingFavs ?? false) {
+      return provider.favs.length > 0
+          ? ListView.builder(
+        padding: const EdgeInsets.all(10.0),
+        itemCount: provider.favs.length,
+        itemBuilder: (ctx, i) =>
+            ChangeNotifierProvider.value(
+                value: provider.favs[i], child: GameListItem()),
+      )
+          : Container(
+        child: Center(
+            child: Text('No haz seleccionado ningun favorito'),
+        ),
+      );
+    }
     return provider.items.length > 0
         ? ListView.builder(
-            padding: const EdgeInsets.all(10.0),
-            itemCount: provider.items.length,
-            itemBuilder: (ctx, i) => ChangeNotifierProvider.value(
-                value: provider.items[i], child: GameListItem()),
-          )
+      padding: const EdgeInsets.all(10.0),
+      itemCount: provider.items.length,
+      itemBuilder: (ctx, i) =>
+          ChangeNotifierProvider.value(
+              value: provider.items[i], child: GameListItem()),
+    )
         : Container(
-            child: Center(
-              child: Icon(
-                FontAwesomeIcons.imdb,
-                size: 100,
-                color: Colors.grey.withOpacity(0.09),
-              ),
-            ),
-          );
+      child: Center(
+        child: Icon(
+          FontAwesomeIcons.imdb,
+          size: 100,
+          color: Colors.grey.withOpacity(0.09),
+        ),
+      ),
+    );
   }
 }

@@ -16,19 +16,19 @@ class GamesRepository {
     return await _resolver.searchGames(query);
   }
 
-  Future toogleFavorite(String id, bool newValue) async {
-    return db.toogleAudiovisualFavourite(id, newValue);
+  Future getFavourites() async {
+    return db.getFavouritesGames();
   }
 
   Future getById(String id) async {
-//    final localData = await db.getAudiovisualById(id);
-//    if (localData != null) {
-//      return localData;
-//    }
+    final localData = await db.getGameById(id);
+    if (localData != null) {
+      return localData;
+    }
 //    final result = await findMyData2();
     final result = await _resolver.findGameById(id);
 
-    //    db.insertAudiovisual(result);
+    db.insertGame(result);
     return result;
   }
 

@@ -40,8 +40,8 @@ class GameListItem extends StatelessWidget {
 //                color: Theme.of(context).accentColor)),
         title:
             Text(game.title, style: Theme.of(context).textTheme.title),
-//        subtitle: Text('${_types[game.type]}/${game.year}',
-//            style: Theme.of(context).textTheme.subtitle),
+        subtitle: Text('${game.platforms} \n ${game.year}',
+            style: Theme.of(context).textTheme.subtitle),
       ),
     );
   }

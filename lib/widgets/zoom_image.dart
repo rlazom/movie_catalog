@@ -17,7 +17,7 @@ class ZoomImage extends StatelessWidget {
           Container(
               child: Center(
                 child: CachedNetworkImage(
-                  imageUrl: 'https://images.igdb.com/igdb/image/upload/t_screenshot_med/$imageUrl.jpg',
+                  imageUrl: imageUrl,
                   width: w,
                   height: h * 0.8,
                   fit: BoxFit.fill,

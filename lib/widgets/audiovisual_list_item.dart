@@ -1,4 +1,5 @@
 import 'package:catalogo/providers/audiovisual_single_provider.dart';
+import 'package:catalogo/providers/audiovisuales_provider.dart';
 import 'package:catalogo/screens/audiovisual_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,8 @@ class AudiovisualListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final audiovisual =
         Provider.of<AudiovisualProvider>(context, listen: false);
+    final provider =
+        Provider.of<AudiovisualListProvider>(context, listen: false);
 
     return Card(
       elevation: 5,
@@ -23,7 +26,8 @@ class AudiovisualListItem extends StatelessWidget {
 //              arguments: audiovisual.id);
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => ChangeNotifierProvider.value(
-                  value: audiovisual, child: AudiovisualDetail())));
+                  value: audiovisual, child: AudiovisualDetail())))
+          .then((_) => provider.loadFavorites(context, audiovisual.type));
         },
 //        leading: audiovisual.imageUrl != null
 //            ? Image.network(

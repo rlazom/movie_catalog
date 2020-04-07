@@ -6,6 +6,7 @@ import 'package:catalogo/widgets/default_image.dart';
 import 'package:catalogo/widgets/zoom_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:like_button/like_button.dart';
@@ -27,6 +28,9 @@ class _GameDetailState extends State<GameDetail> {
   @override
   void didChangeDependencies() {
     if (_isInit) {
+      FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
+        FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+      });
       _isInit = false;
       GameProvider gameProvider =
           Provider.of<GameProvider>(context, listen: false);
@@ -40,6 +44,7 @@ class _GameDetailState extends State<GameDetail> {
                       actions: <Widget>[
                         FlatButton(
                           onPressed: () {
+                            Navigator.of(context).pop();
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
@@ -108,9 +113,9 @@ class _GameDetailState extends State<GameDetail> {
   Color getRatingColor(String score) {
     try {
       var d = double.parse(score);
-      if (d < 6) {
+      if (d < 60) {
         return Colors.redAccent;
-      } else if (d < 9) {
+      } else if (d < 90) {
         return Colors.yellowAccent;
       }
       return Colors.greenAccent;
@@ -192,7 +197,7 @@ class _GameDetailState extends State<GameDetail> {
                                   : Colors.white,
                             ),
                             onTap: (isFav) =>
-                                product.toggleFavourite(context: context),
+                                product.toggleFavourite(context: context, game: _game),
                           ),
                         )
                       ],
@@ -242,18 +247,18 @@ class _GameDetailState extends State<GameDetail> {
       // new GameTitle(
       //     title: _game.titulo, value: _game.titulo),
 
-      /// Puntuacion
-      buildDivider(_game.score),
-      new GameContentHorizontal(
-        label: 'Valoracion',
-        content: _game.score,
-      ),
-
       /// SINOPSIS
       // buildDivider(_game.sinopsis),
       new GameContentHorizontal(
         label: 'Sinópsis',
         content: _game.sinopsis,
+      ),
+
+      /// Puntuacion
+      buildDivider(_game.score),
+      new GameContentHorizontal(
+        label: 'Valoracion',
+        content: _game.score,
       ),
 
       /// Empresa
@@ -290,7 +295,7 @@ class _GameDetailState extends State<GameDetail> {
     /* ) */;
     return <Widget>[
       Card(
-        margin: EdgeInsets.all(10),
+        margin: const EdgeInsets.all(10),
         elevation: 5,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
@@ -323,7 +328,7 @@ class _GameDetailState extends State<GameDetail> {
         context,
         MaterialPageRoute(
             builder: (context) => ZoomImage(
-                  imageUrl: _game.image,
+                  imageUrl: 'https://images.igdb.com/igdb/image/upload/t_screenshot_med/${_game.image}.jpg',
                 )));
   }
 }
