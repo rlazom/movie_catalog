@@ -1,6 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'default_image.dart';
+import 'hex_color.dart';
+
 class ZoomImage extends StatelessWidget {
   final String imageUrl;
 
@@ -12,34 +15,26 @@ class ZoomImage extends StatelessWidget {
     double w = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          Container(
-              child: Center(
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  width: w,
-                  height: h * 0.8,
-                  fit: BoxFit.fill,
-                ),
-              )),
-//          Container(
-//              color: Colors.black,
-//              child: Center(
-//                  child: Image.network(
-//                imageUrl,
-//                width: w,
-//                height: h * 0.8,
-//                fit: BoxFit.fill,
-//              ))),
-          SizedBox(
-              height: 80,
-              child: AppBar(
-                backgroundColor: Colors.transparent,
-                iconTheme: IconThemeData(color: Colors.white),
-              )),
-        ],
+      appBar: AppBar(
+        elevation: 10,
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: HexColor('#252525')),
       ),
+      body: PlaceholderImage(
+//        color: Colors.white,
+          child: Center(
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
+                  width: double.infinity,
+              placeholder: (_, __) => SizedBox(
+                child: CircularProgressIndicator(),
+              ),
+              errorWidget: (ctx, _, __) =>
+                  Center(child: Text('Parece que ocurrio un error'),),
+//                  height: h * 0.8,
+              fit: BoxFit.cover,
+            ),
+          )),
     );
   }
 }

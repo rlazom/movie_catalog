@@ -127,6 +127,10 @@ class _SearchScreenState extends State<SearchScreen>
             ],
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Divider(),
+        ),
         Expanded(
           child: Container(
             child: _isLoading

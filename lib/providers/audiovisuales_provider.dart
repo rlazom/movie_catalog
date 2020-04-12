@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:catalogo/data/moor_database.dart';
+import 'package:catalogo/providers/util.dart';
 import 'package:flutter/material.dart';
 
 import '../providers/audiovisual_single_provider.dart';
@@ -16,6 +17,21 @@ class AudiovisualListProvider with ChangeNotifier {
   bool _hasMore;
   int _totalSearchResult;
   int _actualPage = 1;
+  String _actualSearchQuery;
+  String _actualSearchType;
+  int _favsMoviesCount = 0;
+  int _favsSeriesCount = 0;
+
+  final _types = {
+    FAVOURITE_THINGS.FILMS: 'movie',
+    FAVOURITE_THINGS.SERIES: 'series'
+  };
+
+  get types => _types;
+
+  int get moviesFavsCount => _favsMoviesCount;
+
+  int get seriesFavsCount => _favsSeriesCount;
 
   AudiovisualListProvider({this.type, this.category, this.genre});
 
@@ -39,8 +55,11 @@ class AudiovisualListProvider with ChangeNotifier {
 
   Future search(BuildContext context, String query, {String type}) async {
 //    return search2(query);
+    _actualSearchQuery = query;
+    _actualSearchType = type;
     final MovieRepository _repository = MovieRepository(context);
-    final result = await _repository.search(query, type: type, page: _actualPage);
+    final result =
+        await _repository.search(query, type: type, page: _actualPage);
     _actualPage = 1;
     if (result != null) {
       _items = result.result;
@@ -52,17 +71,18 @@ class AudiovisualListProvider with ChangeNotifier {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('No Conection!!!'),
-          ));
+                title: Text('No Conection!!!'),
+              ));
     }
 
     notifyListeners();
   }
 
-  Future fetchMore(BuildContext context, String query, {String type}) async {
+  Future fetchMore(BuildContext context) async {
     final MovieRepository _repository = MovieRepository(context);
     _actualPage++;
-    final result = await _repository.search(query, type: type, page: _actualPage);
+    final result = await _repository.search(_actualSearchQuery,
+        type: _actualSearchType, page: _actualPage);
     if (result != null) {
       _items.addAll(result.result);
       _hasMore = 10 * _actualPage < _totalSearchResult;
@@ -78,13 +98,20 @@ class AudiovisualListProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future loadFavorites(BuildContext context, String type) async {
+  Future calculateCountFavorites(BuildContext context) async {
+    final MovieRepository _repository = MovieRepository(context);
+    _favsMoviesCount = await _repository.countFavouriteMovies(_types[FAVOURITE_THINGS.FILMS]);
+    _favsSeriesCount = await _repository.countFavouriteMovies(_types[FAVOURITE_THINGS.SERIES]);
+    notifyListeners();
+  }
+
+  Future loadFavorites(BuildContext context, {FAVOURITE_THINGS type, String typeDc}) async {
     final MovieRepository _repository = MovieRepository(context);
     final List<AudiovisualTableData> dbList =
-        await _repository.getFavourites(type);
+        await _repository.getFavourites(type != null ? types[type] : typeDc);
     _favs = dbList
         .map((av) => AudiovisualProvider(
-            type: type,
+            type: types[type],
             title: av.titulo,
             imageUrl: av.image,
             id: av.id,

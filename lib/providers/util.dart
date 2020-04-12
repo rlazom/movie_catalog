@@ -6,3 +6,5 @@ class SearchMovieResponse {
 
   SearchMovieResponse({this.result, this.totalResult});
 }
+
+enum FAVOURITE_THINGS { FILMS, SERIES, GAMES }

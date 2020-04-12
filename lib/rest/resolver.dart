@@ -48,12 +48,12 @@ class RestResolver {
     return new SearchMovieResponse(result: result, totalResult: totalResults);
   }
 
-  Future searchGames(String query) async {
+  Future<List<GameProvider>> searchGames(String query, {@required int offset}) async {
+    await countGames(query);
     List<GameProvider> result;
     const url = 'https://api-v3.igdb.com/games';
     const headers = {'user-key': '26c513d89314b2f280e551a4bbb1eff0'};
-    // TODO Validar que tenga todo lo que se muestra despues
-    final body = 'fields name,first_release_date,platforms.name; search "$query";';
+    final body = 'fields name,first_release_date,platforms.name;where first_release_date != null; offset $offset; search "$query";';
     try {
       var response = await http.post(url, headers: headers, body: body);
       if (response.statusCode == 200) {
@@ -70,12 +70,30 @@ class RestResolver {
           var game = new GameProvider(
               title: a['name'],
               id: a['id'].toString(),
-              year: DateFormat.yMMM().format(fechaLanzamiento),
+              year: DateFormat.y().format(fechaLanzamiento),
               platforms: platform,
               isFavourite: false);
           result.add(game);
         }
-      }
+      } else print(response.statusCode);
+    } catch (e) {
+      print(e);
+    }
+    return result;
+  }
+
+  Future countGames(String query) async {
+    List<GameProvider> result;
+    const url = 'https://api-v3.igdb.com/games/count';
+    const headers = {'user-key': '26c513d89314b2f280e551a4bbb1eff0'};
+    final body = 'where first_release_date != null; search "$query";';
+    try {
+      var response = await http.post(url, headers: headers, body: body);
+      if (response.statusCode == 200) {
+        result = [];
+        var body = jsonDecode(response.body);
+        print('$query - $body');
+      } else print(response.statusCode);
     } catch (e) {
       print(e);
     }
@@ -151,10 +169,10 @@ class RestResolver {
             plataformas: platform,
             fechaLanzamiento: fechaLanzamiento,
             score: rating?.round()?.toString(),
-            sinopsis: result[0]["summary"],
+            sinopsis: await translate(result[0]["summary"]),
             titulo: result[0]["name"],
             isFavourite: false,
-            genre: genre);
+            genre: genre ?? '-');
         return fullData;
       }
     } catch (e) {

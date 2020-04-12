@@ -46,14 +46,21 @@ class _AudiovisualListState extends State<AudiovisualList> {
             );
     }
     return provider.items != null && provider.items.length > 0
-        ? ListView.builder(
-            padding: const EdgeInsets.all(10.0),
-            itemCount: provider.items.length,
-            itemBuilder: (ctx, i) => i < provider.items.length
-                ? ChangeNotifierProvider.value(
-                    value: provider.items[i], child: AudiovisualListItem())
-                : FlatButton(onPressed: () {}, child: Text('More')),
-          )
+        ? Scrollbar(
+          child: ListView.builder(
+              padding: const EdgeInsets.all(10.0),
+              itemCount: provider.items.length + 1,
+              itemBuilder: (ctx, i) => i < provider.items.length
+                  ? ChangeNotifierProvider.value(
+                      value: provider.items[i], child: AudiovisualListItem())
+                  : provider.hasMore ? Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: FlatButton(
+                          onPressed: () => provider.fetchMore(context),
+                          child: Text('MOSTRAR MÁS')),
+                    ) : Container(height: 10,),
+            ),
+        )
         : Container(
             child: Center(
               child: Icon(

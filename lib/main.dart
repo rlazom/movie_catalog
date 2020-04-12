@@ -1,13 +1,13 @@
-import 'package:catalogo/screens/favs_screen.dart';
-import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
-
 import 'data/moor_database.dart';
+import 'providers/util.dart';
 import 'screens/audiovisual_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/audiovisuales_provider.dart';
 import 'providers/games_provider.dart';
 import 'screens/home_screen.dart';
+
+import 'screens/favs_screen.dart';
 
 //LoginService service = new LoginService();
 
@@ -33,7 +33,7 @@ class HomeImbd extends StatelessWidget {
         )
       ],
       child: MaterialApp(
-        title: 'Imbd',
+        title: 'Catalogo',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
             primarySwatch: Colors.amber,
@@ -43,9 +43,15 @@ class HomeImbd extends StatelessWidget {
         home: ImbdScreen(),
         routes: {
           AudiovisualDetail.routeName: (ctx) => AudiovisualDetail(),
-          FavouriteScren.routeNameFilms: (ctx) => FavouriteScren(param: FAVOURITE_THINGS.FILMS,),
-          FavouriteScren.routeNameGames: (ctx) => FavouriteScren(param: FAVOURITE_THINGS.GAMES,),
-          FavouriteScren.routeNameSeries: (ctx) => FavouriteScren(param: FAVOURITE_THINGS.SERIES,),
+          FavouriteScren.routeNameFilms: (ctx) => FavouriteScren(
+                param: FAVOURITE_THINGS.FILMS,
+              ),
+          FavouriteScren.routeNameGames: (ctx) => FavouriteScren(
+                param: FAVOURITE_THINGS.GAMES,
+              ),
+          FavouriteScren.routeNameSeries: (ctx) => FavouriteScren(
+                param: FAVOURITE_THINGS.SERIES,
+              ),
         },
       ),
     );

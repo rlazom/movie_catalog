@@ -1,13 +1,20 @@
+import 'package:catalogo/providers/audiovisuales_provider.dart';
+import 'package:catalogo/providers/games_provider.dart';
 import 'package:catalogo/screens/favs_screen.dart';
-import 'package:catalogo/widgets/hex_color.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
 class UserScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final avProvider =
+        Provider.of<AudiovisualListProvider>(context, listen: false);
+    avProvider.calculateCountFavorites(context);
+    final gameProvider = Provider.of<GameListProvider>(context, listen: false);
+    gameProvider.calculateCountFavorites(context);
     return Scaffold(
       resizeToAvoidBottomInset: true,
       resizeToAvoidBottomPadding: true,
@@ -42,9 +49,14 @@ class UserScreen extends StatelessWidget {
                           Material(
 //                            color: Colors.white,
                             child: ListTile(
-                              trailing: Icon(FontAwesomeIcons.film),
+                              trailing: Consumer<AudiovisualListProvider>(
+                                  builder: (__, provider, _) => Text(
+                                        provider.moviesFavsCount.toString(),
+                                        style:
+                                            Theme.of(context).textTheme.title,
+                                      )),
                               title: Text(
-                                'Mis Películas Favoritas',
+                                'Películas',
                                 style: Theme.of(context).textTheme.title,
                               ),
                               onTap: () => Navigator.of(context)
@@ -60,9 +72,14 @@ class UserScreen extends StatelessWidget {
                           Material(
 //                            color: Colors.white,
                             child: ListTile(
-                              trailing: Icon(FontAwesomeIcons.video),
+                              trailing: Consumer<AudiovisualListProvider>(
+                                  builder: (__, provider, _) => Text(
+                                        provider.seriesFavsCount.toString(),
+                                        style:
+                                            Theme.of(context).textTheme.title,
+                                      )),
                               title: Text(
-                                'Mis Series Favoritas',
+                                'Series',
                                 style: Theme.of(context).textTheme.title,
                               ),
                               onTap: () => Navigator.of(context)
@@ -78,14 +95,19 @@ class UserScreen extends StatelessWidget {
                           Material(
 //                            color: Colors.white,
                             child: ListTile(
-                              trailing: Icon(FontAwesomeIcons.gamepad),
+                              trailing: Consumer<GameListProvider>(
+                                  builder: (__, provider, _) => Text(
+                                        provider.favsCount.toString(),
+                                        style:
+                                            Theme.of(context).textTheme.title,
+                                      )),
                               onTap: () => Navigator.of(context)
                                   .pushNamed(FavouriteScren.routeNameGames)
                                   .then((_) {
                                 onBackFromFavsScreen(context);
                               }),
                               title: Text(
-                                'Mis Juegos Favoritos',
+                                'Juegos',
                                 style: Theme.of(context).textTheme.title,
                               ),
                             ),
@@ -111,6 +133,5 @@ class UserScreen extends StatelessWidget {
     FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
       FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
     });
-
   }
 }

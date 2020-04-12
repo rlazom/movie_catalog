@@ -9,7 +9,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:like_button/like_button.dart';
 import 'package:provider/provider.dart';
 
 class GameDetail extends StatefulWidget {
@@ -22,8 +21,8 @@ class GameDetail extends StatefulWidget {
 class _GameDetailState extends State<GameDetail> {
   var _isInit = true;
   var _isLoading = true;
-  var _imageLoaded = false;
   GameTableData _game;
+  GameProvider gameProvider;
 
   @override
   void didChangeDependencies() {
@@ -32,8 +31,7 @@ class _GameDetailState extends State<GameDetail> {
         FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
       });
       _isInit = false;
-      GameProvider gameProvider =
-          Provider.of<GameProvider>(context, listen: false);
+      gameProvider = Provider.of<GameProvider>(context, listen: false);
       gameProvider.findMyData(context).then((value) {
         if (mounted) {
           if (value == null) {
@@ -73,6 +71,8 @@ class _GameDetailState extends State<GameDetail> {
               child:
                   Center(child: SizedBox(child: CircularProgressIndicator()))));
     }
+    gameProvider.checkImageCached(
+        'https://images.igdb.com/igdb/image/upload/t_cover_big/${_game.image}.jpg');
     return Container(
       padding:
           MediaQuery.of(context).padding.copyWith(left: 0, right: 0, bottom: 0),
@@ -92,7 +92,7 @@ class _GameDetailState extends State<GameDetail> {
             ];
           },
           body: Container(
-            color: Colors.black.withAlpha(32),
+            color: Colors.white,
             child: CustomScrollView(
               slivers: <Widget>[getContent()],
             ),
@@ -110,6 +110,20 @@ class _GameDetailState extends State<GameDetail> {
         ));
   }
 
+  Future<bool> onLikeButtonTap(bool isLiked, BuildContext context) {
+    final ScaffoldState scaffoldState =
+        context.rootAncestorStateOfType(TypeMatcher<ScaffoldState>());
+    if (scaffoldState != null) {
+      scaffoldState.showSnackBar(SnackBar(
+        duration: Duration(seconds: 1),
+        content: Text(isLiked
+            ? 'Eliminado de Mis Favoritos'
+            : 'Agregado a Mis Favoritos'),
+      ));
+    }
+    return gameProvider.toggleFavourite(context: context, game: _game);
+  }
+
   Color getRatingColor(String score) {
     try {
       var d = double.parse(score);
@@ -124,16 +138,45 @@ class _GameDetailState extends State<GameDetail> {
     }
   }
 
+  IconData getRatingIcon(String score) {
+    try {
+      var d = double.parse(score);
+      if (d < 60) {
+        return FontAwesomeIcons.frown;
+      } else if (d < 90) {
+        return FontAwesomeIcons.meh;
+      }
+      return FontAwesomeIcons.smile;
+    } catch (e) {
+      return FontAwesomeIcons.meh;
+    }
+  }
+
   SliverAppBar getAppBar(BuildContext context) {
     final umbral = MediaQuery.of(context).size.height / 9.675 + 5;
 
     return SliverAppBar(
-      pinned: true,
-      floating: false,
+      pinned: false,
+      floating: true,
       backgroundColor: Colors.black87,
       elevation: 5,
       expandedHeight: MediaQuery.of(context).size.height * 0.6,
+//      title: Text(
+//        _game.titulo,
+////        maxLines: 1,
+//        style: TextStyle(color: Colors.white),
+//      ),
       primary: true,
+      actions: <Widget>[
+        CircleAvatar(
+          backgroundColor: getRatingColor(_game.score).withOpacity(0.5),
+          child: Text(
+            _game.score ?? '-',
+            style: Theme.of(context).textTheme.title,
+          ),
+        ),
+        likeButton(context)
+      ],
       actionsIconTheme: IconThemeData(color: Colors.white),
       iconTheme: IconThemeData(color: Colors.white),
       flexibleSpace: LayoutBuilder(
@@ -141,33 +184,36 @@ class _GameDetailState extends State<GameDetail> {
           var top = constraints.biggest.height;
           return FlexibleSpaceBar(
             collapseMode: CollapseMode.parallax,
-            centerTitle: false,
-            title: AnimatedOpacity(
-                duration: Duration(milliseconds: 150),
-                opacity: top <= umbral ? 1.0 : 0.0,
-                child: Text(
-                  _game.titulo,
-                  maxLines: 1,
-                  style: TextStyle(color: Colors.white),
-                )),
+            centerTitle: true,
+//            title: AnimatedOpacity(
+//                duration: Duration(milliseconds: 150),
+//                opacity: top <= umbral ? 1.0 : 1.0,
+//                child: Text(
+//                  _game.titulo,
+//                  maxLines: 1,
+//                  style: TextStyle(color: Colors.white),
+//                )),
             background: Stack(alignment: AlignmentDirectional.center,
                 // fit: StackFit.loose,
                 children: <Widget>[
-                  _game.image == null || !_imageLoaded
-                      ? new DefaultAudiovisualImage(
-                          heigth: MediaQuery.of(context).size.height * 0.6)
-                      : CachedNetworkImage(
-                          imageUrl: 'https://images.igdb.com/igdb/image/upload/t_screenshot_med/${_game.image}.jpg',
-                          placeholder: (_, __) => SizedBox(
-                            child: CircularProgressIndicator(),
-                          ),
-                          errorWidget: (ctx, _, __) => DefaultAudiovisualImage(
-                              heigth: MediaQuery.of(ctx).size.height * 0.6),
-                          fit: BoxFit.fill,
-                          height: double.infinity,
-                        ),
+                  Consumer<GameProvider>(
+                      builder: (ctx, game, child) => !game.imageLoaded
+                          ? new PlaceholderImage(
+                              heigth: MediaQuery.of(context).size.height * 0.6)
+                          : CachedNetworkImage(
+                              imageUrl:
+                                  'https://images.igdb.com/igdb/image/upload/t_cover_big/${_game.image}.jpg',
+                              placeholder: (_, __) => SizedBox(
+                                child: CircularProgressIndicator(),
+                              ),
+                              errorWidget: (ctx, _, __) => PlaceholderImage(
+                                  heigth: MediaQuery.of(ctx).size.height * 0.6),
+                              fit: BoxFit.cover,
+                              height: double.infinity,
+                              width: double.infinity,
+                            )),
                   BackdropFilter(
-                    filter: new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                    filter: new prefix0.ImageFilter.blur(sigmaX: 1, sigmaY: 1),
                     child: Container(
                       decoration: new BoxDecoration(
                         color: Colors.black.withOpacity(0.75),
@@ -175,31 +221,22 @@ class _GameDetailState extends State<GameDetail> {
                     ),
                   ),
                   Positioned(
-                    top: 30,
+                    bottom: 30,
                     right: 20,
                     child: Row(
                       children: <Widget>[
-                        CircleAvatar(
-                          backgroundColor: getRatingColor(_game.score),
-                          child: Text(
-                            _game.score ?? '-',
-                            style: Theme.of(context).textTheme.title,
-                          ),
-                        ),
-                        Consumer<GameProvider>(
-                          builder: (ctx, product, child) => LikeButton(
-                            likeBuilder: (bool isLiked) => Icon(
-                              product.isFavourite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: product.isFavourite
-                                  ? Colors.red
-                                  : Colors.white,
-                            ),
-                            onTap: (isFav) =>
-                                product.toggleFavourite(context: context, game: _game),
-                          ),
-                        )
+//                        CircleAvatar(
+//                          backgroundColor:
+//                              getRatingColor(_game.score).withOpacity(0.5),
+//                          child: Text(
+//                            _game.score ?? '-',
+//                            style: Theme.of(context).textTheme.title,
+//                          ),
+//                        ),
+//                        Consumer<GameProvider>(
+//                          builder: (ctx, product, child) => LikeButton(
+//                        likeButton(context),
+//                        )
                       ],
                     ),
                   ),
@@ -208,30 +245,26 @@ class _GameDetailState extends State<GameDetail> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        Text(
-                          _game.titulo,
-                          maxLines: 3,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white, fontSize: 26),
-                        ),
-                        IconButton(
-                          icon: Icon(_imageLoaded
-                              ? FontAwesomeIcons.solidImage
-                              : FontAwesomeIcons.cloudDownloadAlt),
-                          color: Colors.white,
-                          iconSize: 50,
-                          onPressed:
-                              _game.image != null && _game.image.isNotEmpty
-                                  ? () {
-                                      if (!_imageLoaded) {
-                                        setState(() {
-                                          _imageLoaded = true;
-                                        });
-                                      } else
-                                        return showGameImage(context);
-                                    }
-                                  : null,
-                        ),
+//                        Text(
+//                          _game.titulo,
+//                          maxLines: 3,
+//                          textAlign: TextAlign.center,
+//                          style: TextStyle(color: Colors.white, fontSize: 26),
+//                        ),
+                        Consumer<GameProvider>(
+                            builder: (ctx, game, child) => game.imageLoaded
+                                ? OutlineButton(
+                                    child: Text('Ampliar'),
+                                    textColor: Colors.white,
+                                    borderSide: BorderSide(color: Colors.white),
+                                    onPressed: () => showGameImage(context))
+                                : OutlineButton(
+                                    child: Text('Descargar portada'),
+                                    textColor: Colors.white,
+                                    borderSide: BorderSide(color: Colors.white),
+//                              iconSize: 50,
+                                    onPressed: () => game.toggleLoadImage(),
+                                  )),
                       ],
                     ),
                   ),
@@ -242,10 +275,21 @@ class _GameDetailState extends State<GameDetail> {
     );
   }
 
+  Widget likeButton(BuildContext context) {
+    return Consumer<GameProvider>(
+        builder: (ctx, game, child) => IconButton(
+              icon: Icon(
+                  game.isFavourite ? Icons.favorite : Icons.favorite_border),
+              color: game.isFavourite ? Colors.red : Colors.white,
+              onPressed: () {
+                return onLikeButtonTap(game.isFavourite, context);
+              },
+            ));
+  }
+
   buildGameBody() {
     var children = [
-      // new GameTitle(
-      //     title: _game.titulo, value: _game.titulo),
+      new GameTitle(title: _game.titulo, value: _game.titulo),
 
       /// SINOPSIS
       // buildDivider(_game.sinopsis),
@@ -257,8 +301,8 @@ class _GameDetailState extends State<GameDetail> {
       /// Puntuacion
       buildDivider(_game.score),
       new GameContentHorizontal(
-        label: 'Valoracion',
-        content: _game.score,
+        label: 'Valoración',
+        content: '${_game.score}/100',
       ),
 
       /// Empresa
@@ -328,7 +372,8 @@ class _GameDetailState extends State<GameDetail> {
         context,
         MaterialPageRoute(
             builder: (context) => ZoomImage(
-                  imageUrl: 'https://images.igdb.com/igdb/image/upload/t_screenshot_med/${_game.image}.jpg',
+                  imageUrl:
+                      'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${_game.image}.jpg',
                 )));
   }
 }
@@ -378,7 +423,7 @@ class GameTitle extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(context)
                 .textTheme
-                .title /*TextStyle(fontWeight: FontWeight.bold)*/,
+                .display1 /*TextStyle(fontWeight: FontWeight.bold)*/,
           ),
         ),
       ),

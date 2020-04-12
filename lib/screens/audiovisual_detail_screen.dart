@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:like_button/like_button.dart';
 import 'package:provider/provider.dart';
 
 class AudiovisualDetail extends StatefulWidget {
@@ -23,6 +22,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
   var _isLoading = true;
   var _imageLoaded = false;
   AudiovisualTableData _audiovisual;
+  AudiovisualProvider audiovisualProvider;
 
   @override
   void didChangeDependencies() {
@@ -31,32 +31,31 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
         FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
       });
       _isInit = false;
-      AudiovisualProvider audiovisualProvider =
-      Provider.of<AudiovisualProvider>(context, listen: false);
+      audiovisualProvider =
+          Provider.of<AudiovisualProvider>(context, listen: false);
       audiovisualProvider.findMyData(context).then((value) {
         if (mounted) {
           if (value == null) {
             showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: Text('No Internet!!!'),
-                  actions: <Widget>[
-                    FlatButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Aceptar'),
-                      textColor: Colors.red,
-                    )
-                  ],
-                ));
+                      title: Text('No Internet!!!'),
+                      actions: <Widget>[
+                        FlatButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Aceptar'),
+                          textColor: Colors.red,
+                        )
+                      ],
+                    ));
           } else
             setState(() {
               _isLoading = false;
               _audiovisual = value;
-
             });
         }
       });
@@ -72,6 +71,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
               child:
                   Center(child: SizedBox(child: CircularProgressIndicator()))));
     }
+    audiovisualProvider.checkImageCached();
     return Container(
       padding:
           MediaQuery.of(context).padding.copyWith(left: 0, right: 0, bottom: 0),
@@ -91,7 +91,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
             ];
           },
           body: Container(
-            color: Colors.black.withAlpha(32),
+            color: Colors.white,
             child: CustomScrollView(
               slivers: <Widget>[getContent()],
             ),
@@ -107,6 +107,21 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
         sliver: SliverList(
           delegate: SliverChildListDelegate(buildAudiovisualBody()),
         ));
+  }
+
+  Future<bool> onLikeButtonTap(bool isLiked, BuildContext context) {
+    final ScaffoldState scaffoldState =
+        context.rootAncestorStateOfType(TypeMatcher<ScaffoldState>());
+    if (scaffoldState != null) {
+      scaffoldState.showSnackBar(SnackBar(
+        duration: Duration(seconds: 1),
+        content: Text(isLiked
+            ? 'Eliminado de Mis Favoritos'
+            : 'Agregado a Mis Favoritos'),
+      ));
+    }
+    return audiovisualProvider.toggleFavourite(
+        context: context, audiovisual: _audiovisual);
   }
 
   Color getRatingColor(String score) {
@@ -127,12 +142,22 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     final umbral = MediaQuery.of(context).size.height / 9.675 + 5;
 
     return SliverAppBar(
-      pinned: true,
-      floating: false,
+      pinned: false,
+      floating: true,
       backgroundColor: Colors.black87,
       elevation: 5,
       expandedHeight: MediaQuery.of(context).size.height * 0.6,
       primary: true,
+      actions: <Widget>[
+        CircleAvatar(
+          backgroundColor: getRatingColor(_audiovisual.score).withOpacity(0.5),
+          child: Text(
+            _audiovisual.score ?? '-',
+            style: Theme.of(context).textTheme.title,
+          ),
+        ),
+        likeButton(context)
+      ],
       actionsIconTheme: IconThemeData(color: Colors.white),
       iconTheme: IconThemeData(color: Colors.white),
       flexibleSpace: LayoutBuilder(
@@ -141,98 +166,63 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
           return FlexibleSpaceBar(
             collapseMode: CollapseMode.parallax,
             centerTitle: false,
-            title: AnimatedOpacity(
-                duration: Duration(milliseconds: 150),
-                opacity: top <= umbral ? 1.0 : 0.0,
-                child: Text(
-                  _audiovisual.titulo,
-                  maxLines: 1,
-                  style: TextStyle(color: Colors.white),
-                )),
+//            title: AnimatedOpacity(
+//                duration: Duration(milliseconds: 150),
+//                opacity: top <= umbral ? 1.0 : 1.0,
+//                child: Text(
+//                  _audiovisual.titulo,
+//                  maxLines: 1,
+//                  style: TextStyle(color: Colors.white),
+//                )),
             background: Stack(alignment: AlignmentDirectional.center,
                 // fit: StackFit.loose,
                 children: <Widget>[
-                  _audiovisual.image == null || !_imageLoaded
-                      ? new DefaultAudiovisualImage(
-                          heigth: MediaQuery.of(context).size.height * 0.6)
-                      : CachedNetworkImage(
-                          imageUrl: _audiovisual.image,
-                          placeholder: (_, __) => SizedBox(
-                            child: CircularProgressIndicator(),
-                          ),
-                          errorWidget: (ctx, _, __) => DefaultAudiovisualImage(
-                              heigth: MediaQuery.of(ctx).size.height * 0.6),
-                          fit: BoxFit.fill,
-                          height: double.infinity,
-                        ),
+                  Consumer<AudiovisualProvider>(
+                      builder: (ctx, av, child) => !av.imageLoaded
+                          ? new PlaceholderImage(
+                              heigth: MediaQuery.of(context).size.height * 0.6)
+                          : CachedNetworkImage(
+                              imageUrl: _audiovisual.image,
+                              placeholder: (_, __) => SizedBox(
+                                child: CircularProgressIndicator(),
+                              ),
+                              errorWidget: (ctx, _, __) => PlaceholderImage(
+                                  heigth: MediaQuery.of(ctx).size.height * 0.6),
+                              fit: BoxFit.cover,
+                              height: double.infinity,
+                              width: double.infinity,
+                            )),
                   BackdropFilter(
                     filter: new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
                       decoration: new BoxDecoration(
-                        color: Colors.black.withOpacity(0.75),
+                        color: Colors.black.withOpacity(0.5),
                       ),
                     ),
                   ),
-                  Positioned(
-                    top: 30,
-                    right: 20,
-                    child: Row(
-                      children: <Widget>[
-                        CircleAvatar(
-                          backgroundColor: getRatingColor(_audiovisual.score),
-                          child: Text(
-                            _audiovisual.score ?? '-',
-                            style: Theme.of(context).textTheme.title,
-                          ),
-                        ),
-                        Consumer<AudiovisualProvider>(
-                          builder: (ctx, product, child) => LikeButton(
-                            likeBuilder: (bool isLiked) => Icon(
-                              product.isFavourite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: product.isFavourite
-                                  ? Colors.red
-                                  : Colors.white,
-                            ),
-                            onTap: (isFav) =>
-                                product.toggleFavourite(context: context, audiovisual: _audiovisual),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text(
-                          _audiovisual.titulo,
-                          maxLines: 3,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white, fontSize: 26),
-                        ),
-                        IconButton(
-                          icon: Icon(_imageLoaded
-                              ? FontAwesomeIcons.solidImage
-                              : FontAwesomeIcons.cloudDownloadAlt),
-                          color: Colors.white,
-                          iconSize: 50,
-                          onPressed: _audiovisual.image != null &&
-                                  _audiovisual.image.isNotEmpty
-                              ? () {
-                                  if (!_imageLoaded) {
-                                    setState(() {
-                                      _imageLoaded = true;
-                                    });
-                                  } else
-                                    return showAudiovisualImage(context);
-                                }
-                              : null,
-                        ),
-                      ],
-                    ),
+                  Center(
+                    child: Consumer<AudiovisualProvider>(
+                        builder: (ctx, game, child) => game.imageLoaded
+                            ? AnimatedOpacity(
+                              duration: Duration(seconds: 5),
+                              opacity: game.imageLoaded ? 1 : 0,
+                              child: OutlineButton(
+//                                icon: Icon(FontAwesomeIcons.solidImage),
+                                  child: Text('Ampliar'),
+                                  textColor: Colors.white,
+                                  borderSide: BorderSide(color: Colors.white),
+//                                iconSize: 50,
+                                  onPressed: () => showAudiovisualImage(context)),
+                            )
+                            : OutlineButton(
+//                                    icon:
+//                                        Icon(FontAwesomeIcons.cloudDownloadAlt),
+                                child: Text('Descargar portada'),
+                                textColor: Colors.white,
+                                borderSide: BorderSide(color: Colors.white),
+//                                    iconSize: 50,
+                                onPressed: () => game.toggleLoadImage(),
+                              )),
                   ),
                 ]),
           );
@@ -241,10 +231,22 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     );
   }
 
+  Widget likeButton(BuildContext context) {
+    return Consumer<AudiovisualProvider>(
+        builder: (ctx, av, child) => IconButton(
+              icon:
+                  Icon(av.isFavourite ? Icons.favorite : Icons.favorite_border),
+              color: av.isFavourite ? Colors.red : Colors.white,
+              onPressed: () {
+                return onLikeButtonTap(av.isFavourite, context);
+              },
+            ));
+  }
+
   buildAudiovisualBody() {
     var children = [
-      // new AudiovisualTitle(
-      //     title: _audiovisual.titulo, value: _audiovisual.titulo),
+      new AudiovisualTitle(
+          title: _audiovisual.titulo, value: _audiovisual.titulo),
 
       /// SINOPSIS
       // buildDivider(_audiovisual.sinopsis),
@@ -401,7 +403,7 @@ class AudiovisualTitle extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(context)
                 .textTheme
-                .title /*TextStyle(fontWeight: FontWeight.bold)*/,
+                .display1 /*TextStyle(fontWeight: FontWeight.bold)*/,
           ),
         ),
       ),

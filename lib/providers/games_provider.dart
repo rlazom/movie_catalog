@@ -8,33 +8,59 @@ import 'game_single_provider.dart';
 
 class GameListProvider with ChangeNotifier {
   List<GameProvider> _items = [];
+  int _offset = 0;
+  final int _DEFAULT_CANT_ITEMS_PER_PAGE = 10;
+  bool _hasMore = false;
+  String _actualSearchQuery;
+  int _favsCount;
 
-  List<GameProvider> get items {
-    return [..._items];
-  }
+  int get favsCount => _favsCount;
+
+  bool get hasMore => _hasMore;
+
+  List<GameProvider> get items => [..._items];
 
   List<GameProvider> _favs = [];
 
-  List<GameProvider> get favs {
-    return [..._favs];
-  }
+  List<GameProvider> get favs => [..._favs];
 
   GameProvider findById(String id) {
     return _items.firstWhere((av) => av.id == id);
   }
 
-  Future search(BuildContext context, String query, {String type}) async {
+  Future search(BuildContext context, String query) async {
 //    return search2(query);
     final GamesRepository _repository = GamesRepository(context);
-    final result = await _repository.search(query, type: type);
+    final result = await _repository.search(query, offset: 0);
+    _actualSearchQuery = query;
     if (result != null) {
       _items = result;
+      _hasMore = _DEFAULT_CANT_ITEMS_PER_PAGE == result.length;
     } else
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
                 title: Text('No Conection!!!'),
               ));
+    notifyListeners();
+  }
+
+  Future fetchMore(BuildContext context) async {
+    final GamesRepository _repository = GamesRepository(context);
+    final result = await _repository.search(_actualSearchQuery,
+        offset: _items.length);
+    if (result != null) {
+      _items.addAll(result);
+      _hasMore = _DEFAULT_CANT_ITEMS_PER_PAGE == result.length;
+    } else {
+//      _totalSearchResult = 0;
+      _hasMore = false;
+//      showDialog(
+//          context: context,
+//          builder: (context) => AlertDialog(
+//            title: Text('No Conection!!!'),
+//          ));
+    }
     notifyListeners();
   }
 
@@ -50,6 +76,12 @@ class GameListProvider with ChangeNotifier {
             id: game.id,
             isFavourite: game.isFavourite))
         .toList();
+    notifyListeners();
+  }
+
+  Future calculateCountFavorites(BuildContext context) async {
+    final GamesRepository _repository = GamesRepository(context);
+    _favsCount = await _repository.countFavouriteGames();
     notifyListeners();
   }
 

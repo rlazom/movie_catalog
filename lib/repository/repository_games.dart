@@ -1,4 +1,5 @@
 import 'package:catalogo/data/moor_database.dart';
+import 'package:catalogo/providers/game_single_provider.dart';
 import 'package:catalogo/rest/resolver.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -12,8 +13,12 @@ class GamesRepository {
     db = Provider.of<MyDatabase>(context, listen: false);
   }
 
-  Future search(String query, {String type}) async {
-    return await _resolver.searchGames(query);
+  Future<List<GameProvider>> search(String query, {@required int offset}) async {
+    return await _resolver.searchGames(query, offset: offset);
+  }
+
+  Future countFavouriteGames() async {
+    return db.countFavouriteGames();
   }
 
   Future getFavourites() async {

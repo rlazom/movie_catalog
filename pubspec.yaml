@@ -30,14 +30,10 @@ dependencies:
   http: 0.12.0+4
   fancy_bottom_navigation: 0.3.2
   cached_network_image: 2.0.0
-  like_button: 0.2.0
-  flutter_bloc: 3.2.0
-  equatable: 1.1.0
   rxdart: ^0.23.1
   intl: 0.16.1
-  sliding_up_panel: ^1.0.1
   flutter_statusbarcolor: ^0.2.3
-  flutter_search_bar: 2.0.6
+  flutter_cache_manager: ^1.1.2
 
 dev_dependencies:
   flutter_test:

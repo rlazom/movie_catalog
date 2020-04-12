@@ -1,5 +1,6 @@
 import 'package:catalogo/providers/audiovisuales_provider.dart';
 import 'package:catalogo/providers/games_provider.dart';
+import 'package:catalogo/providers/util.dart';
 import 'package:catalogo/widgets/audiovisual_list.dart';
 import 'package:catalogo/widgets/games_list.dart';
 import 'package:catalogo/widgets/hex_color.dart';
@@ -8,46 +9,70 @@ import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
-enum FAVOURITE_THINGS { FILMS, SERIES, GAMES }
 
-class FavouriteScren extends StatelessWidget {
+class FavouriteScren extends StatefulWidget {
   static const routeNameFilms = '/film_fav';
   static const routeNameSeries = '/series_fav';
   static const routeNameGames = '/game_fav';
   final FAVOURITE_THINGS param;
-  final titles = {
-    FAVOURITE_THINGS.FILMS: 'Mis Películas Favoritas',
-    FAVOURITE_THINGS.GAMES: 'Mis Juegos Favoritos',
-    FAVOURITE_THINGS.SERIES: 'Mis Series Favoritas',
-  };
-  final types = {
-    FAVOURITE_THINGS.FILMS: 'movie',
-    FAVOURITE_THINGS.SERIES: 'series'
-  };
 
   FavouriteScren({Key key, @required this.param}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  _FavouriteScrenState createState() => _FavouriteScrenState();
+}
+
+class _FavouriteScrenState extends State<FavouriteScren>
+    with WidgetsBindingObserver {
+  final titles = {
+    FAVOURITE_THINGS.FILMS: 'Películas',
+    FAVOURITE_THINGS.GAMES: 'Juegos',
+    FAVOURITE_THINGS.SERIES: 'Series',
+  };
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
     FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
-      FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
+      FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
     });
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
+        FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     Widget body;
-    switch (param) {
+    switch (widget.param) {
       case FAVOURITE_THINGS.FILMS:
         final provider =
             Provider.of<AudiovisualListProvider>(context, listen: false);
-        provider.loadFavorites(context, types[param]);
+        provider.loadFavorites(context, type: FAVOURITE_THINGS.FILMS);
         body = Consumer<AudiovisualListProvider>(
           builder: (_, provider, child) => AudiovisualList(
             isShowingFavs: true,
           ),
         );
         break;
-      case FAVOURITE_THINGS.SERIES:
+      case FAVOURITE_THINGS.FILMS:
         final provider =
             Provider.of<AudiovisualListProvider>(context, listen: false);
-        provider.loadFavorites(context, types[param]);
+        provider.loadFavorites(context, type: FAVOURITE_THINGS.FILMS);
         body = Consumer<AudiovisualListProvider>(
           builder: (_, provider, child) => AudiovisualList(
             isShowingFavs: true,
@@ -89,11 +114,11 @@ class FavouriteScren extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          titles[param],
-          style: TextStyle(color: Colors.white),
+          titles[widget.param],
         ),
-        iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: HexColor('#252525'),
+        backgroundColor: Colors.white,
+        elevation: 5,
+//        backgroundColor: HexColor('#252525'),
       ),
       body: body,
     );

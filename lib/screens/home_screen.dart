@@ -1,13 +1,13 @@
-import 'package:catalogo/screens/search_games_screen.dart';
-import 'package:catalogo/screens/search_screen.dart';
+import 'package:catalogo/widgets/hex_color.dart';
 import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 
-import 'user_screen.dart';
+import '../widgets/search_games_page.dart';
+import '../widgets/search_movie_page.dart';
+import '../widgets/user_page.dart';
 
 class ImbdScreen extends StatefulWidget {
   @override
@@ -15,12 +15,9 @@ class ImbdScreen extends StatefulWidget {
 }
 
 class _ImbdScreenState extends State<ImbdScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final _pages = <Widget>[
-//    Center(
-//      child: Text(
-//          'Desde Back4App encuestar diariamente alguna api para comocer las populares'),
-//    ),
+//    ColorsPalette(),
     SearchScreen(),
     SearchGameScreen(),
     UserScreen(),
@@ -31,17 +28,30 @@ class _ImbdScreenState extends State<ImbdScreen>
   void initState() {
     _controller =
         TabController(length: _pages.length, vsync: this, initialIndex: 0);
-    _controller.addListener(() => FocusScope.of(context).requestFocus(FocusNode()));
+    _controller
+        .addListener(() => FocusScope.of(context).requestFocus(FocusNode()));
     FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
       FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
     });
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+       FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
+         FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+       });
+    }
   }
 
   @override
@@ -54,10 +64,10 @@ class _ImbdScreenState extends State<ImbdScreen>
 //        TabData(iconData: FontAwesomeIcons.trophy, title: "Popular"),
         TabData(iconData: FontAwesomeIcons.film, title: "Media"),
         TabData(iconData: FontAwesomeIcons.gamepad, title: "Juegos"),
-        TabData(iconData: FontAwesomeIcons.userAlt, title: "Me")
+        TabData(iconData: FontAwesomeIcons.userAlt, title: "Favoritos")
       ],
       onTabChangedListener: _onTap,
-      barBackgroundColor: Colors.black87,
+      barBackgroundColor: HexColor('#252525'),
       textColor: Colors.white,
       initialSelection: 0,
       circleColor: Colors.white,

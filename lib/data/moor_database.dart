@@ -142,6 +142,14 @@ class MyDatabase extends _$MyDatabase {
     return av.isFavourite;
   }
 
+  Future countFavouriteMovies(String type) async {
+    var query = await customSelect(
+        'select count(*) as count from ${audiovisualTable.actualTableName} '
+            'where ${audiovisualTable.category.escapedName} = \'$type\' '
+            'and ${audiovisualTable.isFavourite.escapedName} = 1');
+    return query[0].data['count'];
+  }
+
   // GAMES
   Future insertGame(GameTableData data) {
     return batch((b) {
@@ -164,4 +172,12 @@ class MyDatabase extends _$MyDatabase {
     query.where((a) => a.isFavourite.equals(true));
     return query.get();
   }
+
+  Future countFavouriteGames() async {
+    var query = await customSelect(
+        'select count(*) as count from ${gameTable.actualTableName} '
+            'where ${gameTable.isFavourite.escapedName} = 1');
+    return query[0].data['count'];
+  }
+
 }

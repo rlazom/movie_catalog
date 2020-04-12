@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 
-class DefaultAudiovisualImage extends StatelessWidget {
-  final double heigth;
+import 'hex_color.dart';
 
-  const DefaultAudiovisualImage({
+class PlaceholderImage extends StatelessWidget {
+  final double heigth;
+  final Widget child;
+
+  const PlaceholderImage({
     Key key,
-    this.heigth,
+    this.heigth, this.child,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: heigth,
+      height: double.infinity,
+      child: child,
       decoration: BoxDecoration(
           gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.grey, Colors.black54, Colors.black])),
+              colors: [Colors.black, Theme.of(context).primaryColor, Colors.black])),
     );
   }
 }

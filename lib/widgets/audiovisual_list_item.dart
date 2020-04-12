@@ -1,5 +1,6 @@
 import 'package:catalogo/providers/audiovisual_single_provider.dart';
 import 'package:catalogo/providers/audiovisuales_provider.dart';
+import 'package:catalogo/providers/util.dart';
 import 'package:catalogo/screens/audiovisual_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +28,10 @@ class AudiovisualListItem extends StatelessWidget {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => ChangeNotifierProvider.value(
                   value: audiovisual, child: AudiovisualDetail())))
-          .then((_) => provider.loadFavorites(context, audiovisual.type));
+          .then((_) {
+            FocusScope.of(context).requestFocus(FocusNode());
+            return provider.loadFavorites(context, typeDc: audiovisual.type);
+          });
         },
 //        leading: audiovisual.imageUrl != null
 //            ? Image.network(

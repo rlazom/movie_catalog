@@ -90,6 +90,10 @@ class _SearchGameScreenState extends State<SearchGameScreen>
                 borderRadius: BorderRadiusDirectional.circular(20)),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Divider(),
+        ),
         Expanded(
           child: Container(
             child: _isLoading

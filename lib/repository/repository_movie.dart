@@ -16,6 +16,10 @@ class MovieRepository {
     return await _resolver.searchMovie(query, type: type, page: page);
   }
 
+  Future countFavouriteMovies(String type) async {
+    return db.countFavouriteMovies(type);
+  }
+
   Future getFavourites(String type) async {
     return db.getFavouritesAudiovisual(type);
   }
