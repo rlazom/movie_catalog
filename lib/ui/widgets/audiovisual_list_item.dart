@@ -1,7 +1,6 @@
 import 'package:catalogo/providers/audiovisual_single_provider.dart';
 import 'package:catalogo/providers/audiovisuales_provider.dart';
-import 'package:catalogo/providers/util.dart';
-import 'package:catalogo/screens/audiovisual_detail_screen.dart';
+import '../screens/audiovisual_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

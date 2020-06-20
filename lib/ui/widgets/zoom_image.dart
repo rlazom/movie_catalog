@@ -16,21 +16,28 @@ class ZoomImage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        elevation: 10,
+        elevation: 0,
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: HexColor('#252525')),
       ),
-      body: PlaceholderImage(
-//        color: Colors.white,
+      body: Container(
+          color: Colors.white,
           child: Center(
             child: CachedNetworkImage(
               imageUrl: imageUrl,
-                  width: double.infinity,
+              width: double.infinity,
               placeholder: (_, __) => SizedBox(
                 child: CircularProgressIndicator(),
               ),
-              errorWidget: (ctx, _, __) =>
-                  Center(child: Text('Parece que ocurrio un error'),),
+              errorWidget: (ctx, _, __) => Center(
+                child: Text(
+                  'Parece que ocurrio un error',
+                  style: Theme.of(context)
+                      .textTheme
+                      .title
+                      .copyWith(color: Colors.black87),
+                ),
+              ),
 //                  height: h * 0.8,
               fit: BoxFit.cover,
             ),

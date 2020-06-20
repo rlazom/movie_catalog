@@ -1,6 +1,6 @@
 import 'package:catalogo/providers/game_single_provider.dart';
 import 'package:catalogo/providers/games_provider.dart';
-import 'package:catalogo/screens/game_detail_screen.dart';
+import '../screens/game_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

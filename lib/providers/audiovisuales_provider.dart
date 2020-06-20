@@ -21,6 +21,9 @@ class AudiovisualListProvider with ChangeNotifier {
   String _actualSearchType;
   int _favsMoviesCount = 0;
   int _favsSeriesCount = 0;
+  String _favsSeriesImage;
+  String _favsMovieImage;
+  bool _loading = false;
 
   final _types = {
     FAVOURITE_THINGS.FILMS: 'movie',
@@ -32,6 +35,10 @@ class AudiovisualListProvider with ChangeNotifier {
   int get moviesFavsCount => _favsMoviesCount;
 
   int get seriesFavsCount => _favsSeriesCount;
+
+  String get favsSeriesImage => '$_favsSeriesImage';
+
+  String get favsMovieImage => '$_favsMovieImage';
 
   AudiovisualListProvider({this.type, this.category, this.genre});
 
@@ -47,20 +54,36 @@ class AudiovisualListProvider with ChangeNotifier {
     return [..._favs];
   }
 
+  List<AudiovisualProvider> _trendings = [];
+
+  List<AudiovisualProvider> get trendings {
+    return [..._trendings];
+  }
+
   bool get hasMore => _hasMore;
+
+  bool get loading => _loading;
 
   AudiovisualProvider findById(String id) {
     return _items.firstWhere((av) => av.id == id);
   }
 
+  clearList() {
+    _items.clear();
+    notifyListeners();
+  }
+
   Future search(BuildContext context, String query, {String type}) async {
 //    return search2(query);
+    _loading = true;
+    notifyListeners();
+
     _actualSearchQuery = query;
     _actualSearchType = type;
-    final MovieRepository _repository = MovieRepository(context);
+    _actualPage = 1;
+    final MovieRepository _repository = MovieRepository.getInstance(context);
     final result =
         await _repository.search(query, type: type, page: _actualPage);
-    _actualPage = 1;
     if (result != null) {
       _items = result.result;
       _totalSearchResult = result.totalResult;
@@ -75,11 +98,19 @@ class AudiovisualListProvider with ChangeNotifier {
               ));
     }
 
+    _loading = false;
+    notifyListeners();
+  }
+
+  Future getTrendings(BuildContext context) async {
+    final MovieRepository _repository = MovieRepository.getInstance(context);
+    if (_trendings == null || _trendings.isEmpty)
+      _trendings = await _repository.getTrending();
     notifyListeners();
   }
 
   Future fetchMore(BuildContext context) async {
-    final MovieRepository _repository = MovieRepository(context);
+    final MovieRepository _repository = MovieRepository.getInstance(context);
     _actualPage++;
     final result = await _repository.search(_actualSearchQuery,
         type: _actualSearchType, page: _actualPage);
@@ -99,14 +130,22 @@ class AudiovisualListProvider with ChangeNotifier {
   }
 
   Future calculateCountFavorites(BuildContext context) async {
-    final MovieRepository _repository = MovieRepository(context);
-    _favsMoviesCount = await _repository.countFavouriteMovies(_types[FAVOURITE_THINGS.FILMS]);
-    _favsSeriesCount = await _repository.countFavouriteMovies(_types[FAVOURITE_THINGS.SERIES]);
+    final MovieRepository _repository = MovieRepository.getInstance(context);
+    _favsMoviesCount =
+        await _repository.countFavouriteMovies(_types[FAVOURITE_THINGS.FILMS]);
+    _favsSeriesCount =
+        await _repository.countFavouriteMovies(_types[FAVOURITE_THINGS.SERIES]);
+
+    _favsMovieImage =
+        await _repository.getFavRandomWallpaper(types[FAVOURITE_THINGS.FILMS]);
+    _favsSeriesImage =
+        await _repository.getFavRandomWallpaper(types[FAVOURITE_THINGS.SERIES]);
     notifyListeners();
   }
 
-  Future loadFavorites(BuildContext context, {FAVOURITE_THINGS type, String typeDc}) async {
-    final MovieRepository _repository = MovieRepository(context);
+  Future loadFavorites(BuildContext context,
+      {FAVOURITE_THINGS type, String typeDc}) async {
+    final MovieRepository _repository = MovieRepository.getInstance(context);
     final List<AudiovisualTableData> dbList =
         await _repository.getFavourites(type != null ? types[type] : typeDc);
     _favs = dbList

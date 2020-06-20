@@ -1,17 +1,21 @@
 import 'dart:ui' as prefix0;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:catalogo/data/moor_database.dart';
 import 'package:catalogo/providers/audiovisual_single_provider.dart';
-import 'package:catalogo/widgets/default_image.dart';
-import 'package:catalogo/widgets/zoom_image.dart';
+import 'package:catalogo/ui/widgets/hex_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/default_image.dart';
+import '../widgets/zoom_image.dart';
 
 class AudiovisualDetail extends StatefulWidget {
   static const routeName = '/audiovisualDetail';
+  final bool trending;
+
+  const AudiovisualDetail({Key key, this.trending}) : super(key: key);
 
   @override
   _AudiovisualDetailState createState() => _AudiovisualDetailState();
@@ -27,40 +31,46 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
   @override
   void didChangeDependencies() {
     if (_isInit) {
-      FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
-        FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
-      });
       _isInit = false;
       audiovisualProvider =
           Provider.of<AudiovisualProvider>(context, listen: false);
-      audiovisualProvider.findMyData(context).then((value) {
-        if (mounted) {
-          if (value == null) {
-            showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                      title: Text('No Internet!!!'),
-                      actions: <Widget>[
-                        FlatButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Aceptar'),
-                          textColor: Colors.red,
-                        )
-                      ],
-                    ));
-          } else
-            setState(() {
-              _isLoading = false;
-              _audiovisual = value;
-            });
-        }
-      });
+      if (widget.trending ?? false)
+        audiovisualProvider.findMyDataTitle(context).then((value) {
+          dataLoaded(value);
+        });
+      else
+        audiovisualProvider.findMyData(context).then((value) {
+          dataLoaded(value);
+        });
     }
     super.didChangeDependencies();
+  }
+
+  void dataLoaded(value) {
+    if (mounted) {
+      if (value == null) {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text('No Internet!!!'),
+                  actions: <Widget>[
+                    FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Aceptar'),
+                      textColor: Colors.red,
+                    )
+                  ],
+                ));
+      } else
+        setState(() {
+          _isLoading = false;
+          _audiovisual = value;
+        });
+    }
   }
 
   @override
@@ -144,7 +154,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     return SliverAppBar(
       pinned: false,
       floating: true,
-      backgroundColor: Colors.black87,
+      backgroundColor: HexColor('#252525'),
       elevation: 5,
       expandedHeight: MediaQuery.of(context).size.height * 0.6,
       primary: true,
@@ -178,52 +188,62 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                 // fit: StackFit.loose,
                 children: <Widget>[
                   Consumer<AudiovisualProvider>(
-                      builder: (ctx, av, child) => !av.imageLoaded
-                          ? new PlaceholderImage(
-                              heigth: MediaQuery.of(context).size.height * 0.6)
-                          : CachedNetworkImage(
-                              imageUrl: _audiovisual.image,
-                              placeholder: (_, __) => SizedBox(
-                                child: CircularProgressIndicator(),
-                              ),
-                              errorWidget: (ctx, _, __) => PlaceholderImage(
-                                  heigth: MediaQuery.of(ctx).size.height * 0.6),
-                              fit: BoxFit.cover,
-                              height: double.infinity,
-                              width: double.infinity,
-                            )),
-                  BackdropFilter(
-                    filter: new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                    child: Container(
-                      decoration: new BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: Consumer<AudiovisualProvider>(
-                        builder: (ctx, game, child) => game.imageLoaded
-                            ? AnimatedOpacity(
-                              duration: Duration(seconds: 5),
-                              opacity: game.imageLoaded ? 1 : 0,
-                              child: OutlineButton(
-//                                icon: Icon(FontAwesomeIcons.solidImage),
-                                  child: Text('Ampliar'),
-                                  textColor: Colors.white,
-                                  borderSide: BorderSide(color: Colors.white),
-//                                iconSize: 50,
-                                  onPressed: () => showAudiovisualImage(context)),
-                            )
-                            : OutlineButton(
-//                                    icon:
-//                                        Icon(FontAwesomeIcons.cloudDownloadAlt),
-                                child: Text('Descargar portada'),
-                                textColor: Colors.white,
-                                borderSide: BorderSide(color: Colors.white),
-//                                    iconSize: 50,
-                                onPressed: () => game.toggleLoadImage(),
-                              )),
-                  ),
+                      builder: (ctx, av, child) => GestureDetector(
+                            onTap: () => !av.imageLoaded
+                                ? av.toggleLoadImage()
+                                : previewImageDialog(context, av.imageUrl),
+                            child: !av.imageLoaded
+                                ? new PlaceholderImage(
+                                    heigth: MediaQuery.of(context).size.height *
+                                        0.6)
+                                : CachedNetworkImage(
+                                    imageUrl: _audiovisual.image,
+                                    color: Colors.black54,
+                                    colorBlendMode: BlendMode.darken,
+                                    placeholder: (_, __) => SizedBox(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                    errorWidget: (ctx, _, __) =>
+                                        PlaceholderImage(
+                                            heigth:
+                                                MediaQuery.of(ctx).size.height *
+                                                    0.6),
+                                    fit: BoxFit.cover,
+                                    height: double.infinity,
+                                    width: double.infinity,
+                                  ),
+                          )),
+//                  BackdropFilter(
+//                    filter: new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+//                    child: Container(
+//                      decoration: new BoxDecoration(
+//                        color: Colors.black.withOpacity(0.5),
+//                      ),
+//                    ),
+//                  ),
+//                  Center(
+//                    child: Consumer<AudiovisualProvider>(
+//                        builder: (ctx, provider, child) => provider.imageLoaded
+//                            ? AnimatedOpacity(
+//                                duration: Duration(seconds: 5),
+//                                opacity: provider.imageLoaded ? 1 : 0,
+//                                child: OutlineButton(
+////                                icon: Icon(FontAwesomeIcons.solidImage),
+//                                    child: Text('Ver Imagen'),
+//                                    textColor: Colors.white,
+//                                    borderSide: BorderSide(color: Colors.white),
+////                                iconSize: 50,
+//                                    onPressed: () => previewImageDialog(
+//                                        context, _audiovisual.image)),
+//                              )
+//                            : OutlineButton(
+//                                child: Text('Descargar portada'),
+//                                textColor: Colors.white,
+//                                borderSide: BorderSide(color: Colors.white),
+////                                    iconSize: 50,
+//                                onPressed: () => provider.toggleLoadImage(),
+//                              )),
+//                  ),
                 ]),
           );
         },
@@ -276,18 +296,25 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
         content: _audiovisual.pais,
       ),
 
-      /// CAPITULOS
-      buildDivider(_audiovisual.capitulos),
-      new AudiovisualContentHorizontal(
-        label: 'Capitulos',
-        content: _audiovisual.capitulos,
-      ),
-
       /// DIRECTOR
       buildDivider(_audiovisual.director),
       new AudiovisualContentHorizontal(
         label: 'Director',
         content: _audiovisual.director,
+      ),
+
+      /// GUIONISTA
+      buildDivider(_audiovisual.capitulos),
+      new AudiovisualContentHorizontal(
+        label: 'Guión',
+        content: _audiovisual.capitulos,
+      ),
+
+      /// TEMPORADAS
+      buildDivider(_audiovisual.temp),
+      new AudiovisualContentHorizontal(
+        label: 'Temporadas',
+        content: _audiovisual.temp,
       ),
 
       /// AÑO
@@ -334,7 +361,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
 
   Widget buildDivider(String value) {
     return Visibility(
-      visible: value != null && value.isNotEmpty,
+      visible: value != null && value.isNotEmpty && value != 'N/A',
       child: Container(
         color: Colors.white,
         child: Padding(
@@ -356,6 +383,48 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
                   imageUrl: _audiovisual.image,
                 )));
   }
+
+  previewImageDialog(BuildContext context, String imageUrl) {
+    showDialog(
+        context: context,
+        builder: (context) => Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shape: new RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(10)),
+//              contentPadding: const EdgeInsets.all(0),
+              child: imageUrl == null || imageUrl.isEmpty
+                  ? Text(
+                      'NADA QUE MOSTRAR',
+                      style: Theme.of(context)
+                          .textTheme
+                          .title
+                          .copyWith(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    )
+                  : Container(
+                      color: Colors.red,
+                      width: MediaQuery.of(context).size.width,
+//                      height: MediaQuery.of(context).size.height,
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.fitWidth,
+                        placeholder: (_, __) => SizedBox(
+                          child: CircularProgressIndicator(),
+                        ),
+                        errorWidget: (ctx, _, __) => Center(
+                          child: Text(
+                            'Parece que ocurrio un error',
+                            style: Theme.of(context)
+                                .textTheme
+                                .title
+                                .copyWith(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+            ));
+  }
 }
 
 class AudiovisualContentHorizontal extends StatelessWidget {
@@ -368,7 +437,7 @@ class AudiovisualContentHorizontal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      visible: content != null && content.isNotEmpty,
+      visible: content != null && content.isNotEmpty && content != 'N/A',
       child: Container(
         color: Colors.white,
         child: ListTile(

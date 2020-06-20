@@ -2,11 +2,11 @@ import 'dart:ui' as prefix0;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:catalogo/data/moor_database.dart';
 import 'package:catalogo/providers/game_single_provider.dart';
-import 'package:catalogo/widgets/default_image.dart';
-import 'package:catalogo/widgets/zoom_image.dart';
+import 'package:catalogo/ui/widgets/hex_color.dart';
+import '../widgets/default_image.dart';
+import '../widgets/zoom_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -27,9 +27,6 @@ class _GameDetailState extends State<GameDetail> {
   @override
   void didChangeDependencies() {
     if (_isInit) {
-      FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
-        FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
-      });
       _isInit = false;
       gameProvider = Provider.of<GameProvider>(context, listen: false);
       gameProvider.findMyData(context).then((value) {
@@ -158,7 +155,7 @@ class _GameDetailState extends State<GameDetail> {
     return SliverAppBar(
       pinned: false,
       floating: true,
-      backgroundColor: Colors.black87,
+      backgroundColor: HexColor('#252525'),
       elevation: 5,
       expandedHeight: MediaQuery.of(context).size.height * 0.6,
 //      title: Text(

@@ -1,13 +1,12 @@
 import 'package:catalogo/providers/audiovisuales_provider.dart';
 import 'package:catalogo/providers/games_provider.dart';
 import 'package:catalogo/providers/util.dart';
-import 'package:catalogo/widgets/audiovisual_list.dart';
-import 'package:catalogo/widgets/games_list.dart';
-import 'package:catalogo/widgets/hex_color.dart';
+import 'package:catalogo/ui/widgets/audiovisual_grid.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/audiovisual_list.dart';
+import '../widgets/games_list.dart';
 
 
 class FavouriteScren extends StatefulWidget {
@@ -39,20 +38,12 @@ class _FavouriteScrenState extends State<FavouriteScren>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
-      FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
-    });
     super.initState();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      FlutterStatusbarcolor.setStatusBarColor(Colors.transparent).then((value) {
-        FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
-      });
-    }
   }
 
   @override
@@ -64,17 +55,17 @@ class _FavouriteScrenState extends State<FavouriteScren>
             Provider.of<AudiovisualListProvider>(context, listen: false);
         provider.loadFavorites(context, type: FAVOURITE_THINGS.FILMS);
         body = Consumer<AudiovisualListProvider>(
-          builder: (_, provider, child) => AudiovisualList(
+          builder: (_, provider, child) => AudiovisualGrid(
             isShowingFavs: true,
           ),
         );
         break;
-      case FAVOURITE_THINGS.FILMS:
+      case FAVOURITE_THINGS.SERIES:
         final provider =
             Provider.of<AudiovisualListProvider>(context, listen: false);
-        provider.loadFavorites(context, type: FAVOURITE_THINGS.FILMS);
+        provider.loadFavorites(context, type: FAVOURITE_THINGS.SERIES);
         body = Consumer<AudiovisualListProvider>(
-          builder: (_, provider, child) => AudiovisualList(
+          builder: (_, provider, child) => AudiovisualGrid(
             isShowingFavs: true,
           ),
         );
@@ -87,26 +78,6 @@ class _FavouriteScrenState extends State<FavouriteScren>
             isShowingFavs: true,
           ),
         );
-//        body = SizedBox.expand(
-//            child: DraggableScrollableSheet(
-//          minChildSize: 0.01,
-//          initialChildSize: 0.05,
-//          maxChildSize: 1,
-//          builder: (_, _controller) => Container(
-//              color: HexColor('#252525'),
-//              child: ListView.builder(
-//                  controller: _controller,
-//                  itemCount: 25,
-//                  itemBuilder: ((_, i) => i == 0
-//                      ? Center(child: Icon(Icons.arrow_drop_up, color: Colors.white,))
-//                      : ListTile(
-//                          title: Text(i.toString(),
-//                              style: Theme.of(context)
-//                                  .textTheme
-//                                  .title
-//                                  .copyWith(color: Colors.white)),
-//                        )))),
-//        ));
         break;
       default:
         body = Container();

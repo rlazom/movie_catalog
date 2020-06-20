@@ -3,27 +3,53 @@ import 'package:catalogo/data/moor_database.dart';
 import 'package:catalogo/providers/audiovisual_single_provider.dart';
 import 'package:catalogo/providers/game_single_provider.dart';
 import 'package:catalogo/providers/util.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-class RestResolver {
-  Future<SearchMovieResponse> searchMovie(String query, {String type, @required int page}) async {
-    List<AudiovisualProvider> result;
-    int totalResults = -1;
+import 'dummy_data.dart';
 
-    const url = 'www.omdbapi.com';
-    Map<String, String> params = {'apikey': '9eb7fce9', 's': query, 'r': 'json', 'page': page.toString()};
-    if (type != null && type.isNotEmpty) {
-      params = {'apikey': '9eb7fce9', 's': query, 'r': 'json', 'type': type, 'page': page.toString()};
-//        params.putIfAbsent('type', () => type);
-    }
-    var uri = Uri.http(url, '/', params);
+class RestResolver {
+  Dio getDioClient() {
+    Dio dio = new Dio(); // with default Options
+    dio.options.baseUrl = 'https://www.omdbapi.com';
+    dio.options.connectTimeout = 5000; //5s
+    dio.options.receiveTimeout = 3000;
+
+    return dio;
+  }
+
+  Future<SearchMovieResponse> searchMovie(String query,
+      {String type, @required int page}) async {
+    print('page: $page');
+    List<AudiovisualProvider> result = [];
+
+    int totalResults = -1;
     try {
-      var response = await http.get(uri);
+
+      const url = 'www.omdbapi.com';
+      Map<String, String> params = {
+        'apikey': '9eb7fce9',
+        's': query,
+        'r': 'json',
+        'page': page.toString()
+      };
+      if (type != null && type.isNotEmpty) {
+        params = {
+          'apikey': '9eb7fce9',
+          's': query,
+          'r': 'json',
+          'type': type,
+          'page': page.toString()
+        };
+      }
+
+      var client = getDioClient();
+      var response = await client.get('/', queryParameters: params);
       if (response.statusCode == 200) {
         result = [];
-        var body = jsonDecode(response.body);
+        var body = response.data;
         if ('True' == body['Response'] && int.parse(body['totalResults']) > 0) {
           totalResults = int.parse(body['totalResults']);
           for (var a in body['Search']) {
@@ -40,20 +66,55 @@ class RestResolver {
           }
         }
       } else {
-        int a = 2;
+        print(response.statusCode);
       }
     } catch (e) {
       print(e);
     }
+
     return new SearchMovieResponse(result: result, totalResult: totalResults);
   }
 
-  Future<List<GameProvider>> searchGames(String query, {@required int offset}) async {
+  Future<List<AudiovisualProvider>> getTrending() async {
+    List<AudiovisualProvider> result;
+
+    const url = 'api.themoviedb.org';
+
+    Map<String, String> params = {
+      'api_key': '3e56846ee7cfb0b7d870484a9f66218c'
+    };
+    var uri = Uri.https(url, '/3/trending/movie/week', params);
+    try {
+      var response = await http.get(uri);
+      if (response.statusCode == 200) {
+        result = [];
+        final body = jsonDecode(response.body);
+//        final body = jsonDecode(DummyData.TRENDING_RESPONSE);
+        for (var a in body['results']) {
+          var aa = new AudiovisualProvider(
+              title: a['title'],
+              id: a['id']?.toString(),
+              image: 'http://image.tmdb.org/t/p/w185${a['poster_path']}',
+              voteAverage: a['vote_average'],
+              imageUrl: 'http://image.tmdb.org/t/p/w185${a['poster_path']}',
+              isFavourite: false);
+          result.add(aa);
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+    return result;
+  }
+
+  Future<List<GameProvider>> searchGames(String query,
+      {@required int offset}) async {
     await countGames(query);
     List<GameProvider> result;
     const url = 'https://api-v3.igdb.com/games';
     const headers = {'user-key': '26c513d89314b2f280e551a4bbb1eff0'};
-    final body = 'fields name,first_release_date,platforms.name;where first_release_date != null; offset $offset; search "$query";';
+    final body =
+        'fields name,first_release_date,platforms.name;where first_release_date != null; offset $offset; search "$query";';
     try {
       var response = await http.post(url, headers: headers, body: body);
       if (response.statusCode == 200) {
@@ -65,8 +126,10 @@ class RestResolver {
           }
           final List plataformas = a["platforms"];
 //          print(plataformas?.map((a) => a["name"].toString()));
-          final platform = plataformas?.map((a) => a["name"].toString())?.join(', ');
-          final fechaLanzamiento = new DateTime.fromMillisecondsSinceEpoch((a["first_release_date"] as int) * 1000);
+          final platform =
+              plataformas?.map((a) => a["name"].toString())?.join(', ');
+          final fechaLanzamiento = new DateTime.fromMillisecondsSinceEpoch(
+              (a["first_release_date"] as int) * 1000);
           var game = new GameProvider(
               title: a['name'],
               id: a['id'].toString(),
@@ -75,7 +138,8 @@ class RestResolver {
               isFavourite: false);
           result.add(game);
         }
-      } else print(response.statusCode);
+      } else
+        print(response.statusCode);
     } catch (e) {
       print(e);
     }
@@ -93,7 +157,8 @@ class RestResolver {
         result = [];
         var body = jsonDecode(response.body);
         print('$query - $body');
-      } else print(response.statusCode);
+      } else
+        print(response.statusCode);
     } catch (e) {
       print(e);
     }
@@ -112,13 +177,53 @@ class RestResolver {
             id: result["imdbID"],
             image: result["Poster"],
             anno: result["Year"],
-            capitulos: result["Episodes"],
             director: result["Director"],
             duracion: result["Runtime"],
             productora: result["Production"],
             idioma: result["Language"],
             pais: result["Country"],
             score: result["imdbRating"],
+            temp: result["totalSeasons"],
+            capitulos: result["Writer"],
+            reparto: result["Actors"],
+            sinopsis: await translate(result["Plot"]),
+            titulo: result["Title"],
+            category: result["Type"],
+            isFavourite: false,
+            genre: result["Genre"]);
+        return fullData;
+      }
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
+
+  Future findMovieByTitle(String title) async {
+    try {
+      const url = 'www.omdbapi.com';
+      var params = {
+        'apikey': '9eb7fce9',
+        't': title,
+        'r': 'json',
+        'plot': 'full'
+      };
+      var uri = Uri.http(url, '/', params);
+      var response = await http.get(uri);
+      if (response.statusCode == 200) {
+        var result = jsonDecode(response.body);
+        var fullData = AudiovisualTableData(
+            id: result["imdbID"],
+            image: result["Poster"],
+            anno: result["Year"],
+            director: result["Director"],
+            duracion: result["Runtime"],
+            productora: result["Production"],
+            idioma: result["Language"],
+            pais: result["Country"],
+            score: result["imdbRating"],
+            temp: result["totalSeasons"],
+            capitulos: result["Writer"],
             reparto: result["Actors"],
             sinopsis: await translate(result["Plot"]),
             titulo: result["Title"],

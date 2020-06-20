@@ -9,6 +9,7 @@ class AudiovisualProvider with ChangeNotifier {
   final String title;
   final String image;
   final String type;
+  final double voteAverage;
   final String year;
   final String imageUrl;
   bool isFavourite;
@@ -19,13 +20,14 @@ class AudiovisualProvider with ChangeNotifier {
       @required this.title,
       this.year,
       this.type,
+      this.voteAverage,
       @required this.image,
       @required this.imageUrl,
       this.isFavourite});
 
   Future<bool> toggleFavourite({@required BuildContext context,AudiovisualTableData audiovisual}) async {
     isFavourite = !isFavourite;
-    final _repository = MovieRepository(context);
+    final _repository = MovieRepository.getInstance(context);
     _repository.db.updateAudiovisual(audiovisual.copyWith(isFavourite: isFavourite));
     notifyListeners();
     return isFavourite;
@@ -44,8 +46,15 @@ class AudiovisualProvider with ChangeNotifier {
   }
 
   Future findMyData(BuildContext context) async {
-    final _repository = MovieRepository(context);
+    final _repository = MovieRepository.getInstance(context);
     var result = await _repository.getById(id);
+    isFavourite = result?.isFavourite;
+    return result;
+  }
+
+  Future findMyDataTitle(BuildContext context) async {
+    final _repository = MovieRepository.getInstance(context);
+    var result = await _repository.getByTitle(title);
     isFavourite = result?.isFavourite;
     return result;
   }

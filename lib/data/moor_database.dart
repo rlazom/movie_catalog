@@ -122,6 +122,12 @@ class MyDatabase extends _$MyDatabase {
     return await query.getSingle();
   }
 
+  Future getAudiovisualByTitle(String title) async {
+    var query = select(audiovisualTable);
+    query.where((a) => a.titulo.equals(title));
+    return await query.getSingle();
+  }
+
   Future<List<AudiovisualTableData>> findAudiovisualList(
       int limit, int skip, String category, String genre, String title) async {
     List<AudiovisualTableData> resultList = [];
@@ -132,6 +138,16 @@ class MyDatabase extends _$MyDatabase {
     var query = select(audiovisualTable);
     query.where((a) => a.category.equals(type) & a.isFavourite.equals(true));
     return query.get();
+  }
+
+  Future getFavRandomWallpaper(String type) async {
+    // SELECT * FROM table ORDER BY RANDOM() LIMIT 1;
+    var query = await customSelect(
+        'select image from ${audiovisualTable.actualTableName} '
+            'where ${audiovisualTable.category.escapedName} = \'$type\' '
+            'and ${audiovisualTable.isFavourite.escapedName} = 1 '
+            'order by RANDOM() LIMIT 1');
+    return query[0].data['image'];
   }
 
   Future<bool> isAudiovisualFav(String id) async {

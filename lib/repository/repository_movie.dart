@@ -1,19 +1,32 @@
 import 'package:catalogo/data/moor_database.dart';
+import 'package:catalogo/providers/audiovisual_single_provider.dart';
 import 'package:catalogo/providers/util.dart';
 import 'package:catalogo/rest/resolver.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
 class MovieRepository {
-  MyDatabase db;
+  static MovieRepository _instance;
+
+  final MyDatabase db;
   final RestResolver _resolver = RestResolver();
 
-  MovieRepository(BuildContext context) {
-    db = Provider.of<MyDatabase>(context, listen: false);
+  static MovieRepository getInstance(BuildContext context) {
+    if (_instance == null)
+      _instance =
+          MovieRepository(Provider.of<MyDatabase>(context, listen: false));
+    return _instance;
   }
 
-  Future<SearchMovieResponse> search(String query, {String type, int page}) async {
-    return await _resolver.searchMovie(query, type: type, page: page);
+  MovieRepository(this.db);
+
+//  MovieRepository(BuildContext context) {
+//    db = Provider.of<MyDatabase>(context, listen: false);
+//  }
+
+  Future<SearchMovieResponse> search(String query,
+      {String type, int page}) async {
+    return _resolver.searchMovie(query, type: type, page: page);
   }
 
   Future countFavouriteMovies(String type) async {
@@ -24,6 +37,14 @@ class MovieRepository {
     return db.getFavouritesAudiovisual(type);
   }
 
+  Future getFavRandomWallpaper(String type) async {
+    return db.getFavRandomWallpaper(type);
+  }
+
+  Future<List<AudiovisualProvider>> getTrending() async {
+    return _resolver.getTrending();
+  }
+
   Future getById(String id) async {
     final localData = await db.getAudiovisualById(id);
     if (localData != null) {
@@ -31,6 +52,16 @@ class MovieRepository {
     }
 //    final result = await findMyData2();
     final result = await _resolver.findMovieById(id);
+    db.insertAudiovisual(result);
+    return result;
+  }
+
+  Future getByTitle(String title) async {
+    final localData = await db.getAudiovisualByTitle(title);
+    if (localData != null) {
+      return localData;
+    }
+    final result = await _resolver.findMovieByTitle(title);
     db.insertAudiovisual(result);
     return result;
   }
