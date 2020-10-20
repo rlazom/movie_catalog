@@ -10,13 +10,11 @@ class AudiovisualList extends StatelessWidget {
   final bool isShowingFavs;
   final bool sliverList;
 
-  const AudiovisualList({Key key, this.isShowingFavs, this.sliverList})
-      : super(key: key);
+  const AudiovisualList({Key key, this.isShowingFavs, this.sliverList}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final provider =
-        Provider.of<AudiovisualListProvider>(context, listen: false);
+    final provider = Provider.of<AudiovisualListProvider>(context, listen: false);
     if (isShowingFavs ?? false) {
       return provider.favs.length > 0
           ? ListView.builder(
@@ -37,20 +35,18 @@ class AudiovisualList extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                   (ctx, i) => i < provider.items.length
                       ? ChangeNotifierProvider.value(
-                          value: provider.items[i],
-                          child: AudiovisualListItem())
+                          value: provider.items[i], child: AudiovisualListItem())
                       : provider.hasMore
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Center(
-                                child: OutlineButton(
-                                    onPressed: () =>
-                                        provider.fetchMore(context),
-                                    color: Colors.white,
-//                                    elevation: 10,
-                                    textColor: Colors.black87,
-                                    child: Text('MOSTRAR MÁS')),
-                              ),
+                          ? Builder(
+                              builder: (ctx) {
+                                provider.fetchMore(context);
+                                return Container(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              },
                             )
                           : Container(
                               height: 10,

@@ -1,3 +1,5 @@
+import 'package:catalogo/ui/pages/dashboard.dart';
+
 import 'data/moor_database.dart';
 import 'providers/util.dart';
 import 'ui/screens/audiovisual_detail_screen.dart';
@@ -39,7 +41,7 @@ class HomeImbd extends StatelessWidget {
             accentColor: Colors.amberAccent,
             fontFamily: 'Dosis'),
         themeMode: ThemeMode.dark,
-        home: showOnboard ? OnboardScreen() : ImbdScreen(),
+        home: showOnboard ? OnboardScreen() : Dashboard(),
         routes: {
           AudiovisualDetail.routeName: (ctx) => AudiovisualDetail(),
           FavouriteScren.routeNameFilms: (ctx) => FavouriteScren(

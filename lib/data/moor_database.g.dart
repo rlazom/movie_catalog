@@ -25,8 +25,8 @@ class AudiovisualTableData extends DataClass
   final String temp;
   final String duracion;
   final String capitulos;
-  final String fecha_reg;
-  final String fecha_act;
+  final DateTime fecha_reg;
+  final String externalId;
   final bool isFavourite;
   AudiovisualTableData(
       {@required this.id,
@@ -46,13 +46,14 @@ class AudiovisualTableData extends DataClass
       this.duracion,
       this.capitulos,
       this.fecha_reg,
-      this.fecha_act,
+      this.externalId,
       @required this.isFavourite});
   factory AudiovisualTableData.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final stringType = db.typeSystem.forDartType<String>();
+    final dateTimeType = db.typeSystem.forDartType<DateTime>();
     final boolType = db.typeSystem.forDartType<bool>();
     return AudiovisualTableData(
       id: stringType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -83,10 +84,10 @@ class AudiovisualTableData extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}duracion']),
       capitulos: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}capitulos']),
-      fecha_reg: stringType
+      fecha_reg: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}fecha_reg']),
-      fecha_act: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}fecha_act']),
+      externalId: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}external_id']),
       isFavourite: boolType
           .mapFromDatabaseResponse(data['${effectivePrefix}is_favourite']),
     );
@@ -111,8 +112,8 @@ class AudiovisualTableData extends DataClass
       temp: serializer.fromJson<String>(json['temp']),
       duracion: serializer.fromJson<String>(json['duracion']),
       capitulos: serializer.fromJson<String>(json['capitulos']),
-      fecha_reg: serializer.fromJson<String>(json['fecha_reg']),
-      fecha_act: serializer.fromJson<String>(json['fecha_act']),
+      fecha_reg: serializer.fromJson<DateTime>(json['fecha_reg']),
+      externalId: serializer.fromJson<String>(json['externalId']),
       isFavourite: serializer.fromJson<bool>(json['isFavourite']),
     );
   }
@@ -136,8 +137,8 @@ class AudiovisualTableData extends DataClass
       'temp': serializer.toJson<String>(temp),
       'duracion': serializer.toJson<String>(duracion),
       'capitulos': serializer.toJson<String>(capitulos),
-      'fecha_reg': serializer.toJson<String>(fecha_reg),
-      'fecha_act': serializer.toJson<String>(fecha_act),
+      'fecha_reg': serializer.toJson<DateTime>(fecha_reg),
+      'externalId': serializer.toJson<String>(externalId),
       'isFavourite': serializer.toJson<bool>(isFavourite),
     };
   }
@@ -183,9 +184,9 @@ class AudiovisualTableData extends DataClass
       fecha_reg: fecha_reg == null && nullToAbsent
           ? const Value.absent()
           : Value(fecha_reg),
-      fecha_act: fecha_act == null && nullToAbsent
+      externalId: externalId == null && nullToAbsent
           ? const Value.absent()
-          : Value(fecha_act),
+          : Value(externalId),
       isFavourite: isFavourite == null && nullToAbsent
           ? const Value.absent()
           : Value(isFavourite),
@@ -209,8 +210,8 @@ class AudiovisualTableData extends DataClass
           String temp,
           String duracion,
           String capitulos,
-          String fecha_reg,
-          String fecha_act,
+          DateTime fecha_reg,
+          String externalId,
           bool isFavourite}) =>
       AudiovisualTableData(
         id: id ?? this.id,
@@ -230,7 +231,7 @@ class AudiovisualTableData extends DataClass
         duracion: duracion ?? this.duracion,
         capitulos: capitulos ?? this.capitulos,
         fecha_reg: fecha_reg ?? this.fecha_reg,
-        fecha_act: fecha_act ?? this.fecha_act,
+        externalId: externalId ?? this.externalId,
         isFavourite: isFavourite ?? this.isFavourite,
       );
   @override
@@ -253,7 +254,7 @@ class AudiovisualTableData extends DataClass
           ..write('duracion: $duracion, ')
           ..write('capitulos: $capitulos, ')
           ..write('fecha_reg: $fecha_reg, ')
-          ..write('fecha_act: $fecha_act, ')
+          ..write('externalId: $externalId, ')
           ..write('isFavourite: $isFavourite')
           ..write(')'))
         .toString();
@@ -297,7 +298,7 @@ class AudiovisualTableData extends DataClass
                                                                       fecha_reg
                                                                           .hashCode,
                                                                       $mrjc(
-                                                                          fecha_act
+                                                                          externalId
                                                                               .hashCode,
                                                                           isFavourite
                                                                               .hashCode)))))))))))))))))));
@@ -322,7 +323,7 @@ class AudiovisualTableData extends DataClass
           other.duracion == this.duracion &&
           other.capitulos == this.capitulos &&
           other.fecha_reg == this.fecha_reg &&
-          other.fecha_act == this.fecha_act &&
+          other.externalId == this.externalId &&
           other.isFavourite == this.isFavourite);
 }
 
@@ -343,8 +344,8 @@ class AudiovisualTableCompanion extends UpdateCompanion<AudiovisualTableData> {
   final Value<String> temp;
   final Value<String> duracion;
   final Value<String> capitulos;
-  final Value<String> fecha_reg;
-  final Value<String> fecha_act;
+  final Value<DateTime> fecha_reg;
+  final Value<String> externalId;
   final Value<bool> isFavourite;
   const AudiovisualTableCompanion({
     this.id = const Value.absent(),
@@ -364,7 +365,7 @@ class AudiovisualTableCompanion extends UpdateCompanion<AudiovisualTableData> {
     this.duracion = const Value.absent(),
     this.capitulos = const Value.absent(),
     this.fecha_reg = const Value.absent(),
-    this.fecha_act = const Value.absent(),
+    this.externalId = const Value.absent(),
     this.isFavourite = const Value.absent(),
   });
   AudiovisualTableCompanion.insert({
@@ -385,7 +386,7 @@ class AudiovisualTableCompanion extends UpdateCompanion<AudiovisualTableData> {
     this.duracion = const Value.absent(),
     this.capitulos = const Value.absent(),
     this.fecha_reg = const Value.absent(),
-    this.fecha_act = const Value.absent(),
+    this.externalId = const Value.absent(),
     this.isFavourite = const Value.absent(),
   })  : id = Value(id),
         titulo = Value(titulo),
@@ -408,8 +409,8 @@ class AudiovisualTableCompanion extends UpdateCompanion<AudiovisualTableData> {
       Value<String> temp,
       Value<String> duracion,
       Value<String> capitulos,
-      Value<String> fecha_reg,
-      Value<String> fecha_act,
+      Value<DateTime> fecha_reg,
+      Value<String> externalId,
       Value<bool> isFavourite}) {
     return AudiovisualTableCompanion(
       id: id ?? this.id,
@@ -429,7 +430,7 @@ class AudiovisualTableCompanion extends UpdateCompanion<AudiovisualTableData> {
       duracion: duracion ?? this.duracion,
       capitulos: capitulos ?? this.capitulos,
       fecha_reg: fecha_reg ?? this.fecha_reg,
-      fecha_act: fecha_act ?? this.fecha_act,
+      externalId: externalId ?? this.externalId,
       isFavourite: isFavourite ?? this.isFavourite,
     );
   }
@@ -633,24 +634,24 @@ class $AudiovisualTableTable extends AudiovisualTable
   }
 
   final VerificationMeta _fecha_regMeta = const VerificationMeta('fecha_reg');
-  GeneratedTextColumn _fecha_reg;
+  GeneratedDateTimeColumn _fecha_reg;
   @override
-  GeneratedTextColumn get fecha_reg => _fecha_reg ??= _constructFechaReg();
-  GeneratedTextColumn _constructFechaReg() {
-    return GeneratedTextColumn(
+  GeneratedDateTimeColumn get fecha_reg => _fecha_reg ??= _constructFechaReg();
+  GeneratedDateTimeColumn _constructFechaReg() {
+    return GeneratedDateTimeColumn(
       'fecha_reg',
       $tableName,
       true,
     );
   }
 
-  final VerificationMeta _fecha_actMeta = const VerificationMeta('fecha_act');
-  GeneratedTextColumn _fecha_act;
+  final VerificationMeta _externalIdMeta = const VerificationMeta('externalId');
+  GeneratedTextColumn _externalId;
   @override
-  GeneratedTextColumn get fecha_act => _fecha_act ??= _constructFechaAct();
-  GeneratedTextColumn _constructFechaAct() {
+  GeneratedTextColumn get externalId => _externalId ??= _constructExternalId();
+  GeneratedTextColumn _constructExternalId() {
     return GeneratedTextColumn(
-      'fecha_act',
+      'external_id',
       $tableName,
       true,
     );
@@ -689,7 +690,7 @@ class $AudiovisualTableTable extends AudiovisualTable
         duracion,
         capitulos,
         fecha_reg,
-        fecha_act,
+        externalId,
         isFavourite
       ];
   @override
@@ -777,9 +778,9 @@ class $AudiovisualTableTable extends AudiovisualTable
       context.handle(_fecha_regMeta,
           fecha_reg.isAcceptableValue(d.fecha_reg.value, _fecha_regMeta));
     }
-    if (d.fecha_act.present) {
-      context.handle(_fecha_actMeta,
-          fecha_act.isAcceptableValue(d.fecha_act.value, _fecha_actMeta));
+    if (d.externalId.present) {
+      context.handle(_externalIdMeta,
+          externalId.isAcceptableValue(d.externalId.value, _externalIdMeta));
     }
     if (d.isFavourite.present) {
       context.handle(_isFavouriteMeta,
@@ -848,10 +849,10 @@ class $AudiovisualTableTable extends AudiovisualTable
       map['capitulos'] = Variable<String, StringType>(d.capitulos.value);
     }
     if (d.fecha_reg.present) {
-      map['fecha_reg'] = Variable<String, StringType>(d.fecha_reg.value);
+      map['fecha_reg'] = Variable<DateTime, DateTimeType>(d.fecha_reg.value);
     }
-    if (d.fecha_act.present) {
-      map['fecha_act'] = Variable<String, StringType>(d.fecha_act.value);
+    if (d.externalId.present) {
+      map['external_id'] = Variable<String, StringType>(d.externalId.value);
     }
     if (d.isFavourite.present) {
       map['is_favourite'] = Variable<bool, BoolType>(d.isFavourite.value);

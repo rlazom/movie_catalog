@@ -1,15 +1,13 @@
-import 'dart:ui' as prefix0;
-
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:catalogo/data/moor_database.dart';
 import 'package:catalogo/providers/audiovisual_single_provider.dart';
+import 'package:catalogo/providers/audiovisuales_provider.dart';
 import 'package:catalogo/ui/widgets/hex_color.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/default_image.dart';
-import '../widgets/zoom_image.dart';
 
 class AudiovisualDetail extends StatefulWidget {
   static const routeName = '/audiovisualDetail';
@@ -22,78 +20,34 @@ class AudiovisualDetail extends StatefulWidget {
 }
 
 class _AudiovisualDetailState extends State<AudiovisualDetail> {
-  var _isInit = true;
-  var _isLoading = true;
-  var _imageLoaded = false;
-  AudiovisualTableData _audiovisual;
   AudiovisualProvider audiovisualProvider;
 
   @override
-  void didChangeDependencies() {
-    if (_isInit) {
-      _isInit = false;
-      audiovisualProvider =
-          Provider.of<AudiovisualProvider>(context, listen: false);
+  void initState() {
+    super.initState();
+    audiovisualProvider = Provider.of<AudiovisualProvider>(context, listen: false);
+    Future.delayed(Duration(milliseconds: 100), () {
+      audiovisualProvider.checkImageCached();
       if (widget.trending ?? false)
-        audiovisualProvider.findMyDataTitle(context).then((value) {
-          dataLoaded(value);
-        });
+        audiovisualProvider.findMyDataTrending(context);
       else
-        audiovisualProvider.findMyData(context).then((value) {
-          dataLoaded(value);
-        });
-    }
-    super.didChangeDependencies();
-  }
-
-  void dataLoaded(value) {
-    if (mounted) {
-      if (value == null) {
-        showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-                  title: Text('No Internet!!!'),
-                  actions: <Widget>[
-                    FlatButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Aceptar'),
-                      textColor: Colors.red,
-                    )
-                  ],
-                ));
-      } else
-        setState(() {
-          _isLoading = false;
-          _audiovisual = value;
-        });
-    }
+        audiovisualProvider.findMyData(context);
+      Provider.of<AudiovisualListProvider>(context, listen: false).synchronizeDashboard(context);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-          body: Container(
-              child:
-                  Center(child: SizedBox(child: CircularProgressIndicator()))));
-    }
-    audiovisualProvider.checkImageCached();
     return Container(
-      padding:
-          MediaQuery.of(context).padding.copyWith(left: 0, right: 0, bottom: 0),
+      padding: MediaQuery.of(context).padding.copyWith(left: 0, right: 0, bottom: 0),
       color: Colors.white,
       child: Scaffold(
         body: NestedScrollView(
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
             return <Widget>[
               SliverOverlapAbsorber(
-                handle:
-                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                child: SliverSafeArea(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                sliver: SliverSafeArea(
                   top: false,
                   sliver: getAppBar(context),
                 ),
@@ -111,27 +65,87 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     );
   }
 
-  SliverPadding getContent() {
-    return SliverPadding(
-        padding: const EdgeInsets.all(8.0),
-        sliver: SliverList(
-          delegate: SliverChildListDelegate(buildAudiovisualBody()),
-        ));
-  }
+  SliverPadding getContent() => SliverPadding(
+      padding: const EdgeInsets.all(8.0),
+      sliver: SliverList(
+        delegate: SliverChildListDelegate(<Widget>[
+          StreamBuilder<bool>(
+              stream: audiovisualProvider.loadingStreamController,
+              initialData: true,
+              builder: (context, snapshot) {
+                return snapshot.data ? LinearProgressIndicator() : Container();
+              }),
+          Card(
+            margin: const EdgeInsets.all(10),
+            elevation: 5,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+              child: Consumer<AudiovisualProvider>(
+                builder: (context, audiovisualProvider, child) => Column(
+                  children: <Widget>[
+                    Hero(
+                      tag: 'title-${audiovisualProvider.id}',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          audiovisualProvider.title,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headline4,
+                        ),
+                      ),
+                    ),
+                    AudiovisualContentHorizontal(
+                        label: 'Sinópsis', content: audiovisualProvider.data?.sinopsis),
+                    buildDivider(audiovisualProvider.data?.genre),
+                    AudiovisualContentHorizontal(
+                        label: 'Género', content: audiovisualProvider.data?.genre),
+                    buildDivider(audiovisualProvider.data?.score),
+                    AudiovisualContentHorizontal(
+                        label: 'Valoracion', content: audiovisualProvider.data?.score),
+                    buildDivider(audiovisualProvider.data?.pais),
+                    AudiovisualContentHorizontal(
+                        label: 'Pais', content: audiovisualProvider.data?.pais),
+                    buildDivider(audiovisualProvider.data?.director),
+                    AudiovisualContentHorizontal(
+                        label: 'Director', content: audiovisualProvider.data?.director),
+                    buildDivider(audiovisualProvider.data?.capitulos),
+                    AudiovisualContentHorizontal(
+                        label: 'Guión', content: audiovisualProvider.data?.capitulos),
+                    buildDivider(audiovisualProvider.data?.temp),
+                    AudiovisualContentHorizontal(
+                        label: 'Temporadas', content: audiovisualProvider.data?.temp),
+                    buildDivider(audiovisualProvider.data?.anno),
+                    AudiovisualContentHorizontal(
+                        label: 'Año', content: audiovisualProvider.data?.anno),
+                    buildDivider(audiovisualProvider.data?.productora),
+                    AudiovisualContentHorizontal(
+                        label: 'Productora', content: audiovisualProvider.data?.productora),
+                    buildDivider(audiovisualProvider.data?.duracion),
+                    AudiovisualContentHorizontal(
+                        label: 'Duración', content: audiovisualProvider.data?.duracion),
+                    buildDivider(audiovisualProvider.data?.idioma),
+                    AudiovisualContentHorizontal(
+                        label: 'Idioma', content: audiovisualProvider.data?.idioma),
+                    buildDivider(audiovisualProvider.data?.reparto),
+                    AudiovisualContentHorizontal(
+                        label: 'Reparto', content: audiovisualProvider.data?.reparto),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ]),
+      ));
 
   Future<bool> onLikeButtonTap(bool isLiked, BuildContext context) {
-    final ScaffoldState scaffoldState =
-        context.rootAncestorStateOfType(TypeMatcher<ScaffoldState>());
+    final ScaffoldState scaffoldState = context.findRootAncestorStateOfType<ScaffoldState>();
     if (scaffoldState != null) {
       scaffoldState.showSnackBar(SnackBar(
         duration: Duration(seconds: 1),
-        content: Text(isLiked
-            ? 'Eliminado de Mis Favoritos'
-            : 'Agregado a Mis Favoritos'),
+        content: Text(isLiked ? 'Eliminado de Mis Favoritos' : 'Agregado a Mis Favoritos'),
       ));
     }
-    return audiovisualProvider.toggleFavourite(
-        context: context, audiovisual: _audiovisual);
+    return audiovisualProvider.toggleFavourite(context: context);
   }
 
   Color getRatingColor(String score) {
@@ -148,216 +162,75 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     }
   }
 
-  SliverAppBar getAppBar(BuildContext context) {
-    final umbral = MediaQuery.of(context).size.height / 9.675 + 5;
-
-    return SliverAppBar(
-      pinned: false,
-      floating: true,
-      backgroundColor: HexColor('#252525'),
-      elevation: 5,
-      expandedHeight: MediaQuery.of(context).size.height * 0.6,
-      primary: true,
-      actions: <Widget>[
-        CircleAvatar(
-          backgroundColor: getRatingColor(_audiovisual.score).withOpacity(0.5),
-          child: Text(
-            _audiovisual.score ?? '-',
-            style: Theme.of(context).textTheme.title,
-          ),
-        ),
-        likeButton(context)
-      ],
-      actionsIconTheme: IconThemeData(color: Colors.white),
-      iconTheme: IconThemeData(color: Colors.white),
-      flexibleSpace: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          var top = constraints.biggest.height;
-          return FlexibleSpaceBar(
-            collapseMode: CollapseMode.parallax,
-            centerTitle: false,
-//            title: AnimatedOpacity(
-//                duration: Duration(milliseconds: 150),
-//                opacity: top <= umbral ? 1.0 : 1.0,
-//                child: Text(
-//                  _audiovisual.titulo,
-//                  maxLines: 1,
-//                  style: TextStyle(color: Colors.white),
-//                )),
-            background: Stack(alignment: AlignmentDirectional.center,
-                // fit: StackFit.loose,
-                children: <Widget>[
-                  Consumer<AudiovisualProvider>(
-                      builder: (ctx, av, child) => GestureDetector(
-                            onTap: () => !av.imageLoaded
-                                ? av.toggleLoadImage()
-                                : previewImageDialog(context, av.imageUrl),
-                            child: !av.imageLoaded
-                                ? new PlaceholderImage(
-                                    heigth: MediaQuery.of(context).size.height *
-                                        0.6)
-                                : CachedNetworkImage(
-                                    imageUrl: _audiovisual.image,
-                                    color: Colors.black54,
-                                    colorBlendMode: BlendMode.darken,
-                                    placeholder: (_, __) => SizedBox(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                    errorWidget: (ctx, _, __) =>
-                                        PlaceholderImage(
-                                            heigth:
-                                                MediaQuery.of(ctx).size.height *
-                                                    0.6),
-                                    fit: BoxFit.cover,
-                                    height: double.infinity,
-                                    width: double.infinity,
-                                  ),
-                          )),
-//                  BackdropFilter(
-//                    filter: new prefix0.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-//                    child: Container(
-//                      decoration: new BoxDecoration(
-//                        color: Colors.black.withOpacity(0.5),
-//                      ),
-//                    ),
-//                  ),
-//                  Center(
-//                    child: Consumer<AudiovisualProvider>(
-//                        builder: (ctx, provider, child) => provider.imageLoaded
-//                            ? AnimatedOpacity(
-//                                duration: Duration(seconds: 5),
-//                                opacity: provider.imageLoaded ? 1 : 0,
-//                                child: OutlineButton(
-////                                icon: Icon(FontAwesomeIcons.solidImage),
-//                                    child: Text('Ver Imagen'),
-//                                    textColor: Colors.white,
-//                                    borderSide: BorderSide(color: Colors.white),
-////                                iconSize: 50,
-//                                    onPressed: () => previewImageDialog(
-//                                        context, _audiovisual.image)),
-//                              )
-//                            : OutlineButton(
-//                                child: Text('Descargar portada'),
-//                                textColor: Colors.white,
-//                                borderSide: BorderSide(color: Colors.white),
-////                                    iconSize: 50,
-//                                onPressed: () => provider.toggleLoadImage(),
-//                              )),
-//                  ),
-                ]),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget likeButton(BuildContext context) {
-    return Consumer<AudiovisualProvider>(
-        builder: (ctx, av, child) => IconButton(
-              icon:
-                  Icon(av.isFavourite ? Icons.favorite : Icons.favorite_border),
-              color: av.isFavourite ? Colors.red : Colors.white,
-              onPressed: () {
-                return onLikeButtonTap(av.isFavourite, context);
-              },
-            ));
-  }
-
-  buildAudiovisualBody() {
-    var children = [
-      new AudiovisualTitle(
-          title: _audiovisual.titulo, value: _audiovisual.titulo),
-
-      /// SINOPSIS
-      // buildDivider(_audiovisual.sinopsis),
-      new AudiovisualContentHorizontal(
-        label: 'Sinópsis',
-        content: _audiovisual.sinopsis,
-      ),
-
-      /// GENERO
-      buildDivider(_audiovisual.genre),
-      new AudiovisualContentHorizontal(
-        label: 'Género',
-        content: _audiovisual.genre,
-      ),
-
-      /// Puntuacion
-      buildDivider(_audiovisual.score),
-      new AudiovisualContentHorizontal(
-        label: 'Valoracion',
-        content: _audiovisual.score,
-      ),
-
-      /// PAIS
-      buildDivider(_audiovisual.pais),
-      new AudiovisualContentHorizontal(
-        label: 'Pais',
-        content: _audiovisual.pais,
-      ),
-
-      /// DIRECTOR
-      buildDivider(_audiovisual.director),
-      new AudiovisualContentHorizontal(
-        label: 'Director',
-        content: _audiovisual.director,
-      ),
-
-      /// GUIONISTA
-      buildDivider(_audiovisual.capitulos),
-      new AudiovisualContentHorizontal(
-        label: 'Guión',
-        content: _audiovisual.capitulos,
-      ),
-
-      /// TEMPORADAS
-      buildDivider(_audiovisual.temp),
-      new AudiovisualContentHorizontal(
-        label: 'Temporadas',
-        content: _audiovisual.temp,
-      ),
-
-      /// AÑO
-      buildDivider(_audiovisual.anno),
-      new AudiovisualContentHorizontal(
-        label: 'Año',
-        content: _audiovisual.anno,
-      ),
-
-      /// PRODUCTORA
-      buildDivider(_audiovisual.productora),
-      new AudiovisualContentHorizontal(
-          label: 'Productora', content: _audiovisual.productora),
-
-      /// DURACION
-      buildDivider(_audiovisual.duracion),
-      new AudiovisualContentHorizontal(
-          label: 'Duración', content: _audiovisual.duracion),
-
-      ///
-      buildDivider(_audiovisual.idioma),
-      new AudiovisualContentHorizontal(
-          label: 'Idioma', content: _audiovisual.idioma),
-
-      ///
-      buildDivider(_audiovisual.reparto),
-      new AudiovisualContentHorizontal(
-          label: 'Reparto', content: _audiovisual.reparto),
-    ];
-    /* ) */;
-    return <Widget>[
-      Card(
-        margin: const EdgeInsets.all(10),
+  SliverAppBar getAppBar(BuildContext context) => SliverAppBar(
+        pinned: false,
+        floating: true,
+        backgroundColor: HexColor('#252525'),
         elevation: 5,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-          child: Column(
-            children: children,
+        expandedHeight: MediaQuery.of(context).size.height * 0.6,
+        primary: true,
+        actions: <Widget>[
+          Consumer<AudiovisualProvider>(
+            builder: (_, audiovisualProvider, child) => CircleAvatar(
+              backgroundColor: getRatingColor(audiovisualProvider.data?.score).withOpacity(0.5),
+              child: Text(
+                audiovisualProvider.data?.score ?? '-',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+            ),
           ),
+          likeButton(context)
+        ],
+        actionsIconTheme: IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: Colors.white),
+        flexibleSpace: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return FlexibleSpaceBar(
+              collapseMode: CollapseMode.parallax,
+              centerTitle: false,
+              background: Consumer<AudiovisualProvider>(
+                  builder: (ctx, av, child) => Hero(
+                        tag: av.id,
+                        child: Material(
+                          color: Colors.black54,
+                          child: GestureDetector(
+                            onTap: () => previewImageDialog(context, av.imageUrl),
+                            child: CachedNetworkImage(
+                              imageUrl: av.imageUrl ?? av.data.image,
+                              color: Colors.black54,
+                              colorBlendMode: BlendMode.darken,
+                              placeholder: (_, __) => Center(
+                                child: SizedBox(
+                                  height: 50,
+                                  width: 50,
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                              errorWidget: (ctx, _, __) =>
+                                  PlaceholderImage(heigth: MediaQuery.of(ctx).size.height * 0.6),
+                              fit: BoxFit.cover,
+                              height: double.infinity,
+                              width: double.infinity,
+                            ),
+                          ),
+                        ),
+                      )),
+            );
+          },
         ),
-      ),
-    ];
-  }
+      );
+
+  Widget likeButton(BuildContext context) => Consumer<AudiovisualProvider>(
+      builder: (ctx, av, child) {
+        final fav = av.isFavourite ?? false;
+        return IconButton(
+            icon: Icon(fav ? Icons.favorite : Icons.favorite_border),
+            color: fav ? Colors.red : Colors.white,
+            onPressed: () {
+              return onLikeButtonTap(fav, context);
+            },
+          );
+      });
 
   Widget buildDivider(String value) {
     return Visibility(
@@ -366,7 +239,7 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-          child: new Divider(
+          child: Divider(
             height: 1,
             color: Colors.black,
           ),
@@ -375,55 +248,58 @@ class _AudiovisualDetailState extends State<AudiovisualDetail> {
     );
   }
 
-  showAudiovisualImage(BuildContext context) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => ZoomImage(
-                  imageUrl: _audiovisual.image,
-                )));
-  }
-
   previewImageDialog(BuildContext context, String imageUrl) {
     showDialog(
         context: context,
-        builder: (context) => Dialog(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              shape: new RoundedRectangleBorder(
-                  borderRadius: new BorderRadius.circular(10)),
-//              contentPadding: const EdgeInsets.all(0),
-              child: imageUrl == null || imageUrl.isEmpty
-                  ? Text(
-                      'NADA QUE MOSTRAR',
-                      style: Theme.of(context)
-                          .textTheme
-                          .title
-                          .copyWith(color: Colors.white),
-                      textAlign: TextAlign.center,
-                    )
-                  : Container(
-                      color: Colors.red,
-                      width: MediaQuery.of(context).size.width,
-//                      height: MediaQuery.of(context).size.height,
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.fitWidth,
-                        placeholder: (_, __) => SizedBox(
-                          child: CircularProgressIndicator(),
-                        ),
-                        errorWidget: (ctx, _, __) => Center(
-                          child: Text(
-                            'Parece que ocurrio un error',
-                            style: Theme.of(context)
-                                .textTheme
-                                .title
-                                .copyWith(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-            ));
+        builder: (context) => MediaQuery.removeViewInsets(
+          removeLeft: true,
+          removeTop: true,
+          removeRight: true,
+          removeBottom: true,
+          context: context,
+          child: AlertDialog(
+            title: ListTile(
+              contentPadding: EdgeInsets.zero,
+              trailing: CircleAvatar(
+                backgroundColor: Colors.white70,
+                child: IconButton(
+                  icon: Icon(Icons.close),
+                  iconSize: 24,
+                  color: Colors.black87,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+            contentPadding: EdgeInsets.zero,
+            insetPadding: EdgeInsets.zero,
+            elevation: 0,
+            backgroundColor: Colors.black54,
+            content: Builder(builder: (context) {
+              var height = MediaQuery.of(context).size.height;
+              return Container(
+                height: height - 20,
+                width: double.infinity,
+                child: ExtendedImage.network(
+                  imageUrl,
+                  fit: BoxFit.fitWidth,
+                  //enableLoadState: false,
+                  mode: ExtendedImageMode.gesture,
+                  initGestureConfigHandler: (state) => GestureConfig(
+                    minScale: 0.9,
+                    animationMinScale: 0.7,
+                    maxScale: 3.0,
+                    animationMaxScale: 3.5,
+                    speed: 1.0,
+                    inertialSpeed: 100.0,
+                    initialScale: 0.9,
+                    inPageView: true,
+                    initialAlignment: InitialAlignment.center,
+                  ),
+                ),
+              );
+            }),
+          ),
+        ));
   }
 }
 
@@ -431,8 +307,7 @@ class AudiovisualContentHorizontal extends StatelessWidget {
   final String label;
   final String content;
 
-  const AudiovisualContentHorizontal({Key key, this.label, this.content})
-      : super(key: key);
+  const AudiovisualContentHorizontal({Key key, this.label, this.content}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -441,145 +316,11 @@ class AudiovisualContentHorizontal extends StatelessWidget {
       child: Container(
         color: Colors.white,
         child: ListTile(
-          title: Text(label, style: Theme.of(context).textTheme.title),
+          title: Text(label, style: Theme.of(context).textTheme.headline6),
           subtitle: Text(content != null && content.isNotEmpty ? content : '',
-              style: Theme.of(context).textTheme.subtitle),
+              style: Theme.of(context).textTheme.subtitle2),
         ),
       ),
     );
-  }
-}
-
-class AudiovisualTitle extends StatelessWidget {
-  const AudiovisualTitle({
-    Key key,
-    @required this.title,
-    @required this.value,
-  }) : super(key: key);
-
-  final String title;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Visibility(
-      visible: value != null && value.isNotEmpty,
-      child: Container(
-        color: Colors.white,
-        child: ListTile(
-          title: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .display1 /*TextStyle(fontWeight: FontWeight.bold)*/,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class ShapesPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    // set the paint color to be white
-    // paint.color = Colors.white;
-    // Create a rectangle with size and width same as the canvas
-    // var rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    // draw the rectangle using the paint
-    // canvas.drawRect(rect, paint);
-    paint.color = Colors.black12;
-    // create a path
-    var path = Path();
-    // path.lineTo(0, 30);
-    // path.lineTo(0, size.width / 2);
-    // path.lineTo(size.width / 2, 0);
-    // path.lineTo(size.width / 2, 30);
-    path.lineTo(0, size.height);
-    path.lineTo(size.width, size.height);
-    path.lineTo(size.width, 0);
-    path.quadraticBezierTo(size.width / 2, size.height * 0.9, 0, 0);
-    path.close();
-    // close the path to form a bounded shape
-    path.close();
-    canvas.drawPath(path, paint);
-    // set the color property of the paint
-    // paint.color = Colors.deepOrange;
-    // center of the canvas is (x,y) => (width/2, height/2)
-    // var center = Offset(size.width / 2, size.height / 2);
-    // draw the circle with center having radius 75.0
-    // canvas.drawCircle(center, 75.0, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
-
-class CurvePainter extends CustomPainter {
-  Color colorOne = Colors.red;
-  Color colorTwo = Colors.red[300];
-  Color colorThree = Colors.red[100];
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Path path = Path();
-    Paint paint = Paint();
-
-    path.lineTo(0, size.height * 0.75);
-    path.quadraticBezierTo(size.width * 0.10, size.height * 0.70,
-        size.width * 0.17, size.height * 0.90);
-    path.quadraticBezierTo(
-        size.width * 0.20, size.height, size.width * 0.25, size.height * 0.90);
-    path.quadraticBezierTo(size.width * 0.40, size.height * 0.40,
-        size.width * 0.50, size.height * 0.70);
-    path.quadraticBezierTo(size.width * 0.60, size.height * 0.85,
-        size.width * 0.65, size.height * 0.65);
-    path.quadraticBezierTo(
-        size.width * 0.70, size.height * 0.90, size.width, 0);
-    path.close();
-
-    paint.color = colorThree;
-    canvas.drawPath(path, paint);
-
-    path = Path();
-    path.lineTo(0, size.height * 0.50);
-    path.quadraticBezierTo(size.width * 0.10, size.height * 0.80,
-        size.width * 0.15, size.height * 0.60);
-    path.quadraticBezierTo(size.width * 0.20, size.height * 0.45,
-        size.width * 0.27, size.height * 0.60);
-    path.quadraticBezierTo(
-        size.width * 0.45, size.height, size.width * 0.50, size.height * 0.80);
-    path.quadraticBezierTo(size.width * 0.55, size.height * 0.45,
-        size.width * 0.75, size.height * 0.75);
-    path.quadraticBezierTo(
-        size.width * 0.85, size.height * 0.93, size.width, size.height * 0.60);
-    path.lineTo(size.width, 0);
-    path.close();
-
-    paint.color = colorTwo;
-    canvas.drawPath(path, paint);
-
-    path = Path();
-    path.lineTo(0, size.height * 0.75);
-    path.quadraticBezierTo(size.width * 0.10, size.height * 0.55,
-        size.width * 0.22, size.height * 0.70);
-    path.quadraticBezierTo(size.width * 0.30, size.height * 0.90,
-        size.width * 0.40, size.height * 0.75);
-    path.quadraticBezierTo(size.width * 0.52, size.height * 0.50,
-        size.width * 0.65, size.height * 0.70);
-    path.quadraticBezierTo(
-        size.width * 0.75, size.height * 0.85, size.width, size.height * 0.60);
-    path.lineTo(size.width, 0);
-    path.close();
-
-    paint.color = colorOne;
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return oldDelegate != this;
   }
 }

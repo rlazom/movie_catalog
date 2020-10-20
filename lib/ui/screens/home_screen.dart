@@ -1,11 +1,10 @@
 import 'package:bmnav/bmnav.dart';
+import 'package:catalogo/ui/pages/dashboard.dart';
 import 'package:catalogo/ui/pages/trending_page.dart';
-import 'package:catalogo/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../pages/search_games_page.dart';
 import '../pages/search_movie_page.dart';
 import '../pages/user_page.dart';
 import '../widgets/hex_color.dart';
@@ -19,6 +18,7 @@ class _ImbdScreenState extends State<ImbdScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final _pages = <Widget>[
     TrendingPage(),
+//    Dashboard(),
     SearchScreen(),
 //    SearchGameScreen(),
     UserScreen(),
@@ -55,7 +55,7 @@ class _ImbdScreenState extends State<ImbdScreen>
     final bmnav = BottomNav(
       items: [
         BottomNavItem(FontAwesomeIcons.solidStar, label: "Trending"),
-        BottomNavItem(FontAwesomeIcons.search, label: "Media"),
+        BottomNavItem(FontAwesomeIcons.home, label: "Media"),
 //        BottomNavItem(FontAwesomeIcons.gamepad, label: "Juegos"),
         BottomNavItem(FontAwesomeIcons.solidHeart, label: "Favoritos")
       ],

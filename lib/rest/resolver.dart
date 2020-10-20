@@ -22,12 +22,10 @@ class RestResolver {
 
   Future<SearchMovieResponse> searchMovie(String query,
       {String type, @required int page}) async {
-    print('page: $page');
     List<AudiovisualProvider> result = [];
 
     int totalResults = -1;
     try {
-
       const url = 'www.omdbapi.com';
       Map<String, String> params = {
         'apikey': '9eb7fce9',
@@ -75,8 +73,29 @@ class RestResolver {
     return new SearchMovieResponse(result: result, totalResult: totalResults);
   }
 
+  Future<AudiovisualTableData> getByTrendingId(String id) async {
+    const url = 'api.themoviedb.org';
+
+    Map<String, String> params = {
+      'api_key': '3e56846ee7cfb0b7d870484a9f66218c'
+    };
+    var uri = Uri.https(url, '/3/movie/$id/external_ids', params);
+    try {
+      var response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+//        final body = jsonDecode(DummyData.TRENDING_RESPONSE);
+        final imdbId = body['imdb_id'];
+        return findMovieById(imdbId, externalId: id);
+      }
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
+
   Future<List<AudiovisualProvider>> getTrending() async {
-    List<AudiovisualProvider> result;
+    List<AudiovisualProvider> result = [];
 
     const url = 'api.themoviedb.org';
 
@@ -165,7 +184,7 @@ class RestResolver {
     return result;
   }
 
-  Future findMovieById(String id) async {
+  Future<AudiovisualTableData> findMovieById(String id, {String externalId}) async {
     try {
       const url = 'www.omdbapi.com';
       var params = {'apikey': '9eb7fce9', 'i': id, 'r': 'json', 'plot': 'full'};
@@ -175,6 +194,7 @@ class RestResolver {
         var result = jsonDecode(response.body);
         var fullData = AudiovisualTableData(
             id: result["imdbID"],
+            externalId: externalId,
             image: result["Poster"],
             anno: result["Year"],
             director: result["Director"],
@@ -199,7 +219,7 @@ class RestResolver {
     return null;
   }
 
-  Future findMovieByTitle(String title) async {
+  Future<AudiovisualTableData> findMovieByTitle(String title) async {
     try {
       const url = 'www.omdbapi.com';
       var params = {

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:catalogo/data/moor_database.dart';
-import 'package:catalogo/repository/repository_games.dart';
+import 'package:catalogo/providers/audiovisuales_provider.dart';
 import 'package:catalogo/repository/repository_movie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:provider/provider.dart';
 
 class AudiovisualProvider with ChangeNotifier {
   final String id;
@@ -11,9 +14,21 @@ class AudiovisualProvider with ChangeNotifier {
   final String type;
   final double voteAverage;
   final String year;
-  final String imageUrl;
+  String imageUrl;
   bool isFavourite;
   bool imageLoaded = false;
+  AudiovisualTableData _data;
+
+  AudiovisualTableData get data => _data;
+  final _loadingStreamController = StreamController<bool>.broadcast();
+
+  get loadingStreamController => _loadingStreamController.stream;
+
+  @override
+  void dispose() {
+    _loadingStreamController.close();
+    super.dispose();
+  }
 
   AudiovisualProvider(
       {@required this.id,
@@ -25,10 +40,12 @@ class AudiovisualProvider with ChangeNotifier {
       @required this.imageUrl,
       this.isFavourite});
 
-  Future<bool> toggleFavourite({@required BuildContext context,AudiovisualTableData audiovisual}) async {
+  Future<bool> toggleFavourite({@required BuildContext context}) async {
     isFavourite = !isFavourite;
-    final _repository = MovieRepository.getInstance(context);
-    _repository.db.updateAudiovisual(audiovisual.copyWith(isFavourite: isFavourite));
+    if (_data != null) {
+      final _repository = MovieRepository.getInstance(context);
+      _repository.db.updateAudiovisual(_data.copyWith(isFavourite: isFavourite));
+    }
     notifyListeners();
     return isFavourite;
   }
@@ -38,7 +55,7 @@ class AudiovisualProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future checkImageCached() async{
+  Future checkImageCached() async {
     var file = await DefaultCacheManager().getFileFromCache(imageUrl);
     var exist = await file?.file?.exists();
     imageLoaded = exist ?? false;
@@ -46,16 +63,24 @@ class AudiovisualProvider with ChangeNotifier {
   }
 
   Future findMyData(BuildContext context) async {
+    _loadingStreamController.add(true);
     final _repository = MovieRepository.getInstance(context);
     var result = await _repository.getById(id);
     isFavourite = result?.isFavourite;
-    return result;
+    _data = result;
+    _loadingStreamController.add(false);
+    notifyListeners();
   }
 
-  Future findMyDataTitle(BuildContext context) async {
+  Future findMyDataTrending(BuildContext context) async {
+    _loadingStreamController.add(true);
+    imageLoaded = true;
     final _repository = MovieRepository.getInstance(context);
-    var result = await _repository.getByTitle(title);
+    var result = await _repository.getByTrendingId(id);
     isFavourite = result?.isFavourite;
-    return result;
+    _data = result;
+    imageUrl = result.image;
+    _loadingStreamController.add(false);
+    notifyListeners();
   }
 }

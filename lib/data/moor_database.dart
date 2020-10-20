@@ -40,9 +40,9 @@ class AudiovisualTable extends Table {
 
   TextColumn get capitulos => text().nullable()();
 
-  TextColumn get fecha_reg => text().nullable()();
+  DateTimeColumn get fecha_reg => dateTime().nullable()();
 
-  TextColumn get fecha_act => text().nullable()();
+  TextColumn get externalId => text().nullable()();
 
   BoolColumn get isFavourite => boolean().clientDefault(() => false)();
 
@@ -108,7 +108,8 @@ class MyDatabase extends _$MyDatabase {
   // MOVIE & SERIES
   Future insertAudiovisual(AudiovisualTableData data) {
     return batch((b) {
-      b.insert(audiovisualTable, data, mode: InsertMode.insertOrReplace);
+      b.insert(audiovisualTable, data.copyWith(fecha_reg: DateTime.now()),
+          mode: InsertMode.insertOrReplace);
     });
   }
 
@@ -116,37 +117,45 @@ class MyDatabase extends _$MyDatabase {
     update(audiovisualTable).replace(data);
   }
 
-  Future getAudiovisualById(String id) async {
+  Future<AudiovisualTableData> getAudiovisualById(String id) async {
     var query = select(audiovisualTable);
     query.where((a) => a.id.equals(id));
     return await query.getSingle();
   }
 
-  Future getAudiovisualByTitle(String title) async {
+  Future<AudiovisualTableData> getAudiovisualByTitle(String title) async {
     var query = select(audiovisualTable);
     query.where((a) => a.titulo.equals(title));
     return await query.getSingle();
   }
 
-  Future<List<AudiovisualTableData>> findAudiovisualList(
-      int limit, int skip, String category, String genre, String title) async {
-    List<AudiovisualTableData> resultList = [];
-    return await new Future<List<AudiovisualTableData>>(() => resultList);
+  Future<AudiovisualTableData> getAudiovisualByExternalId(String trendingId) async {
+    var query = select(audiovisualTable);
+    query.where((a) => a.externalId.equals(trendingId));
+    return await query.getSingle();
+  }
+
+  Future<List<AudiovisualTableData>> getAllMovies() async {
+    SimpleSelectStatement<$AudiovisualTableTable, AudiovisualTableData> query;
+    query = select(audiovisualTable)..limit(15)
+      ..orderBy([(r) => OrderingTerm(expression: r.fecha_reg, mode: OrderingMode.desc)])
+        ;
+    return query.get();
   }
 
   Future getFavouritesAudiovisual(String type) async {
     var query = select(audiovisualTable);
+
     query.where((a) => a.category.equals(type) & a.isFavourite.equals(true));
     return query.get();
   }
 
   Future getFavRandomWallpaper(String type) async {
     // SELECT * FROM table ORDER BY RANDOM() LIMIT 1;
-    var query = await customSelect(
-        'select image from ${audiovisualTable.actualTableName} '
-            'where ${audiovisualTable.category.escapedName} = \'$type\' '
-            'and ${audiovisualTable.isFavourite.escapedName} = 1 '
-            'order by RANDOM() LIMIT 1');
+    var query = await customSelect('select image from ${audiovisualTable.actualTableName} '
+        'where ${audiovisualTable.category.escapedName} = \'$type\' '
+        'and ${audiovisualTable.isFavourite.escapedName} = 1 '
+        'order by RANDOM() LIMIT 1');
     return query[0].data['image'];
   }
 
@@ -159,8 +168,8 @@ class MyDatabase extends _$MyDatabase {
   }
 
   Future countFavouriteMovies(String type) async {
-    var query = await customSelect(
-        'select count(*) as count from ${audiovisualTable.actualTableName} '
+    var query =
+        await customSelect('select count(*) as count from ${audiovisualTable.actualTableName} '
             'where ${audiovisualTable.category.escapedName} = \'$type\' '
             'and ${audiovisualTable.isFavourite.escapedName} = 1');
     return query[0].data['count'];
@@ -190,10 +199,8 @@ class MyDatabase extends _$MyDatabase {
   }
 
   Future countFavouriteGames() async {
-    var query = await customSelect(
-        'select count(*) as count from ${gameTable.actualTableName} '
-            'where ${gameTable.isFavourite.escapedName} = 1');
+    var query = await customSelect('select count(*) as count from ${gameTable.actualTableName} '
+        'where ${gameTable.isFavourite.escapedName} = 1');
     return query[0].data['count'];
   }
-
 }
